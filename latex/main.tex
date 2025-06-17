@@ -76,7 +76,7 @@ Endianess is the order of bytes in an integer
 Resisters store small values in small regions of memory accessible to the CPU, x86 has many registers that include
 % https://wiki.osdev.org/CPU_Registers_x86-64
 
-The resiters on the same line overlap in memory (eg the 32-bit register is located in the lower half of the 64-bit register)
+The registers on the same line overlap in memory (eg the 32-bit register is located in the lower half of the 64-bit register)
 
 General purpose registers
 \begin{table}[H]
@@ -99,20 +99,31 @@ General purpose registers
     R13 & R13D & R13W & N/A & R13B & General purpose register \\
     R14 & R14D & R14W & N/A & R14B & General purpose register \\
     R15 & R15D & R15W & N/A & R15B & General purpose register
-
   \end{tabular}
 \end{table}
 
-Instruction Pointer Registers
-RIP, EIP, IP
+\noindent Instruction Pointer Registers
+\begin{table}[H]
+  \begin{tabular}{c|c|c|l}
+    \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Description} \\
+    \hline
+    RIP & EIP & IP & The pointer to the current instruction
+  \end{tabular}
+\end{table}
 
-Segment Registers:
-CS Code
-DS Data
-SS Stack
-ES Extra (string operations)
-FS General purpose
-GS General purpose
+\noindent All segment registers are 16-bit, they are:
+\begin{table}[H]
+  \begin{tabular}{r|l}
+    \textbf{Register} & \textbf{Description} \\
+    \hline
+    CS & Code segment \\
+    DS & Data segment \\
+    SS & Stack segment \\
+    ES & Extra segment (for string operations) \\
+    FS & General purpose segment register \\
+    GS & General purpose segment register
+  \end{tabular}
+\end{table}
 
 \subsection{Flags}
 

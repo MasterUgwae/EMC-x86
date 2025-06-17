@@ -1,0 +1,5 @@
+#!/bin/bash
+
+FILE_PATH=$(echo $0 | awk -F 'run' '{print $1}')
+nasm -f bin "${FILE_PATH}main.asm" -o "${FILE_PATH}main.bin"
+qemu-system-x86_64 -drive file="${FILE_PATH}main.bin",format=raw
