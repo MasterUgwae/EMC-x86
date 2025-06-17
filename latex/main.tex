@@ -78,8 +78,9 @@ Resisters store small values in small regions of memory accessible to the CPU, x
 
 The registers on the same line overlap in memory (eg the 32-bit register is located in the lower half of the 64-bit register)
 
-General purpose registers
 \begin{table}[H]
+  \centering
+  \caption{General purpose registers}
   \begin{tabular}{c|c|c|c|c|l}
     \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Higher 8-bit} & \textbf{Lower 8-bit} & \textbf{Description} \\
     \hline
@@ -102,8 +103,9 @@ General purpose registers
   \end{tabular}
 \end{table}
 
-\noindent Instruction Pointer Registers
 \begin{table}[H]
+  \centering
+  \caption{Pointer registers}
   \begin{tabular}{c|c|c|l}
     \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Description} \\
     \hline
@@ -111,8 +113,9 @@ General purpose registers
   \end{tabular}
 \end{table}
 
-\noindent All segment registers are 16-bit, they are:
 \begin{table}[H]
+  \centering
+  \caption{Segment registers (All are 16-bit)}
   \begin{tabular}{r|l}
     \textbf{Register} & \textbf{Description} \\
     \hline
@@ -120,8 +123,8 @@ General purpose registers
     DS & Data segment \\
     SS & Stack segment \\
     ES & Extra segment (for string operations) \\
-    FS & General purpose segment register \\
-    GS & General purpose segment register
+    FS & General purpose segment register (Intel 80386) \\
+    GS & General purpose segment register (Intel 80386)
   \end{tabular}
 \end{table}
 
@@ -142,7 +145,21 @@ General purpose registers
 \subsection{Memory paging, protection and segmentation}
 
 \section{Operating modes}
-Real, protected, long, user/kernel
+\begin{table}[H]
+  \centering
+  %\caption{}
+  \begin{tabular}{r|p{0.8\linewidth}}
+    \textbf{Name} & \textbf{Description} \\
+    \hline
+    Real mode & Also called real address mode, all addresses always correspond to physical (real) memory addresses. Memory addresses are 20 bit allowing for 1MiB of memory, they are referenced by the value in a segment register left shifted by 4 then added to an offset for example [es:di]. There is no memory protection in real mode, and all x86 CPU's start in real mode when reset for compatibility \\
+    Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB or memory \\
+    Protected mode & Also called protected virtual address mode, it allows the use of segmentation, virtual memory, paging and safe multi-tasking. To enter protected mode the software must setup a descriptor table and enable the Protection Enable (PE) bit in CR0 (Intel 80286). \\
+    Virtual 8086 mode & Also called virtual read mode, it allows real mode processes to run in protected mode. It is a hardware virtualisation technique and uses the 20-bit segmentation that real mode uses but is subject to the protected mode's memory paging. \\
+    Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\
+    x86 virtualisation mode & Mode that uses hardware assisted virtualisation. \\
+    AIS and 8080 emulation mode & Rarely used operating modes found on only a few old CPUs.
+  \end{tabular}
+\end{table}
 
 \section{Branch prediction}
 Spectre/meltdown
