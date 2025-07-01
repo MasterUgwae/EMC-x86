@@ -64,6 +64,11 @@ Also a label can be placed to be able to refer to a specific line.
 
 \section{Directives}
 
+\section{Sections}
+
+\subsection{Data section}
+db, equ, \$ etc
+
 \section{Memory}
 
 \subsection{Memory sizes and representaion}
@@ -179,11 +184,11 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 \begin{table}[H]
   \centering
   %\caption{}
-  \begin{tabular}{r|p{0.8\linewidth}}
+  \begin{tabular}{r|p{0.65\linewidth}}
     \textbf{Name} & \textbf{Description} \\
     \hline
     Real mode & Also called real address mode, all addresses always correspond to physical (real) memory addresses. Memory addresses are 20 bit allowing for 1MiB of memory, they are referenced by the value in a segment register left shifted by 4 then added to an offset for example [es:di]. There is no memory protection in real mode, and all x86 CPU's start in real mode when reset for compatibility \\
-    Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB or memory \\
+    Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB of memory \\
     Protected mode & Also called protected virtual address mode, it allows the use of segmentation, virtual memory, paging and safe multi-tasking. To enter protected mode the software must setup a descriptor table and enable the Protection Enable (PE) bit in CR0 (Intel 80286). \\
     Virtual 8086 mode & Also called virtual read mode, it allows real mode processes to run in protected mode. It is a hardware virtualisation technique and uses the 20-bit segmentation that real mode uses but is subject to the protected mode's memory paging. \\
     Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\
@@ -195,11 +200,58 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 \section{Branch prediction}
 Spectre/meltdown
 
-\section{Vonn neumann architecture}
+\section{x86 architecture}
 
 \section{Intel vs AT\&T syntax}
 
+\section{Interrupts}
+
+\subsection{Syscalls (on Linux)}
+
+In order for a program to communicate with the OS it has to hand over control of the processor back to the OS.
+In 32-bit programs it uses the interrupt \texttt{int 80h}, in 64-bit programs it uses the instruction \texttt{syscall}.
+The parameters for the syscall are placed in specific registers.
+
+
+% https://www.man7.org/linux/man-pages/man2/syscall.2.html
+\begin{table}[H]
+  \centering
+  \caption{Registers used for syscall parameters (not all args are used for all syscalls)}
+  \begin{tabular}{c|c|p{0.5\linewidth}}
+    \textbf{i386 Registers} & \textbf{x86-64 Register} & \textbf{Useage} \\
+    \hline
+    eax & rax & Stores the number of the syscall, these are different in 32-bit and 64-bit programs \\
+    ebx & rdi & Arg1 \\
+    ecx & rsi & Arg2 \\
+    edx & rdx & Arg3 \\
+    esi & r10 & Arg4 \\
+    edi & r8 & Arg5 \\
+    ebp & r9 & Arg6
+  \end{tabular}
+\end{table}
+
+% https://www.man7.org/linux/man-pages/man2/syscalls.2.html
+% https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
+\begin{table}[H]
+  \centering
+  \caption{Common Linux Syscalls}
+  \begin{tabular}{c|c|c|c|c|c}
+    \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} \\
+    \hline
+    \texttt{sys\_write} & 4 & 1 & File descriptor & Buffer ptr & Size of buffer \\
+    \texttt{sys\_exit} & 1 & 60 & Error code & - & -
+  \end{tabular}
+\end{table}
+
+A file descriptor in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with, and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively.
+
 \section{Appendix}
+
+\subsection{32-bit Linux syscall}
+\lstinputlisting{../linux_syscalls/32.asm}
+
+\subsection{64-bit Linux syscall}
+\lstinputlisting{../linux_syscalls/64.asm}
 
 \section{Index}
 
