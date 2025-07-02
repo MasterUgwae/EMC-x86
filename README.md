@@ -1,5 +1,10 @@
 # EMC-x86
 
+##
+Useful Links
+https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
+https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
+
 ## Objectives
 
 Key:

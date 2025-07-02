@@ -235,15 +235,16 @@ The parameters for the syscall are placed in specific registers.
 \begin{table}[H]
   \centering
   \caption{Common Linux Syscalls}
-  \begin{tabular}{c|c|c|c|c|c}
-    \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} \\
+  \begin{tabular}{c|c|c|c|c|c|c|c|c|p{0.2\linewidth}}
+    \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} & \textbf{Use/Description} \\
     \hline
-    \texttt{sys\_write} & 4 & 1 & File descriptor & Buffer ptr & Size of buffer \\
-    \texttt{sys\_exit} & 1 & 60 & Error code & - & -
+    \texttt{write} & 4 & 1 & FD & Buffer ptr & Size of buffer & - & - & - & Writes the buffer to the file \\
+    \texttt{exit} & 1 & 60 & Error code & - & - & - & - & - & Exits the program with the specified error code \\
+    \texttt{mmap} & ? & 9 & Addr & len & prot & flags & FD & off & Allocates memory, if Addr is NULL then any location is chosen else it will attempt to allocate at Addr. It allocates len bytes
   \end{tabular}
 \end{table}
 
-A file descriptor in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with, and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively.
+A FD (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with, and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively.
 
 \section{Appendix}
 
