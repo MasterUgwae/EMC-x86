@@ -63,8 +63,39 @@ The code consists of an instruction followed by the registers it uses, or immedi
 Also a label can be placed to be able to refer to a specific line.
 
 \section{Instructions}
+The format of the instruction is \texttt{instruction op1, op2}
+Each instruction has different limitations to what type an operand can be, these types are
 
-\section{Directives}
+\begin{table}[H]
+  \centering
+  \caption{Operand types}
+  \begin{tabular}{|c|c|l|}
+    \hline \textbf{Symbol} & \textbf{Name} & \textbf{Description} \\
+    \hline
+    r & General purpose register & A register such as eax \\
+    m & Memory address & A memory address such as [eax + 4*ebx + 4] \\
+    i & Immediate & A constant value such as 80h or a pointer to a label or data section \\
+    s & Segment Register & A segment register such as es \\
+    \hline
+  \end{tabular}
+\end{table}
+
+The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type. Furthermore, some instructions have more than one row of operands, each row shows a different combination of operand types
+
+% TODO: jmps add, (arithmetic) xor, (logical) cmp test
+
+\begin{table}[H]
+  \centering
+  \caption{Instructions}
+  \begin{tabular}{|c|p{0.5\linewidth}|c|c|}
+    \hline \textbf{Name} & \textbf{Description} & \textbf{Operand 1} & \textbf{Operand 2} \\ \hline
+    \multirow[t]{4}*{\texttt{mov}} & \multirow[t]{4}*{Coppies the value from op2 into op1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
+                                   & & \texttt{m} & \texttt{r|i} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{s} \\ \cline{3-4}
+                                   & & \texttt{s} & \texttt{r|m} \\ \hline
+    \texttt{lea} & Stores the address from op2 into op1 but unlike mov it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
+  \end{tabular}
+\end{table}
 
 \section{Sections}
 
@@ -141,15 +172,15 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
   \end{tabular}
 \end{table}
 
-\begin{table}[H]
-  \centering
-  \caption{Pointer registers}
-  \begin{tabular}{c|c|c|l}
-    \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Description} \\
-    \hline
-    RIP & EIP & IP & The pointer to the current instruction
-  \end{tabular}
-\end{table}
+% \begin{table}[H] % TODO: hidden register
+%   \centering
+%   \caption{Pointer registers}
+%   \begin{tabular}{c|c|c|l}
+%     \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Description} \\
+%     \hline
+%     RIP & EIP & IP & The pointer to the current instruction
+%   \end{tabular}
+% \end{table}
 
 \begin{table}[H]
   \centering
@@ -179,11 +210,15 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 \subsection{Cache}
 
 \subsection{Memory locations}
+% TODO: [es:di] and [eax + ebx * 4 + 2]
 
 \subsection{Memory paging, protection and segmentation}
-swap, page faults
+% TODO: swap, page faults
 
 \section{Operating modes}
+
+x86 processors have several different operating modes that they can run in, these operating modes can change the addressing mode, available instruction set and registers. x86 processors start up in real mode from address 0xFFFF0. % TODO: , however the BIOS will start running the OS (WHERE???), and UEFI????
+
 \begin{table}[H]
   \centering
   %\caption{}
@@ -233,12 +268,13 @@ The parameters for the syscall are placed in specific registers.
   \end{tabular}
 \end{table}
 
-% https://www.man7.org/linux/man-pages/man2/syscalls.2.html
-% https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
+% WARNING: https://www.man7.org/linux/man-pages/man2/syscalls.2.html
+% WARNING: https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
 \begin{table}[H]
   \centering
   \caption{Common Linux Syscalls}
   \begin{tabular}{|*{9}{>{\centering\arraybackslash}p{0.085\linewidth}|}}
+    % TODO: Read, open, close
     \hline \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} \\
     \hline \texttt{write} & 4 & 1 & fd & ptr & count & - & - & - \\
     \hline \multicolumn{9}{|p{0.97\linewidth}|}{Writes the buffer (count bytes pointed to by ptr) to the file} \\
@@ -256,12 +292,19 @@ The parameters for the syscall are placed in specific registers.
 
 A fd (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with, and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively, any negative fd is invalid so to specify no file, -1 is usually used.
 
+Example code of using syscalls can be found on page \pageref{linuxsyscalls}.
+
 \section{Appendix}
 
-\subsection{32-bit Linux syscall}
-\lstinputlisting{../linux_syscalls/32.asm}
+\label{linuxsyscalls}
+\subsection{Linux syscalls}
 
-\subsection{64-bit Linux syscall}
+\subsubsection{Hello world}
+This program prints "Hello World" to the terminal then exits without an error.
+
+\noindent \newline 32-bit code:
+\lstinputlisting{../linux_syscalls/32.asm}
+64-bit code:
 \lstinputlisting{../linux_syscalls/64.asm}
 
 \section{Index}
