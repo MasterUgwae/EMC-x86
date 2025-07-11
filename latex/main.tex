@@ -80,7 +80,7 @@ Each instruction has different limitations to what type an operand can be, these
   \end{tabular}
 \end{table}
 
-The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type. Furthermore, some instructions have more than one row of operands, each row shows a different combination of operand types
+The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type. Furthermore, some instructions have more than one row of operands, each row shows a different combination of operand types. Most instructions should only operate on a single word size (eg 64-bit), if an instruction is used with different sized operands then it may cause an assembler error, cause an invalid opcode exception, truncate the source or bit extend it (either arithmetically or logically).
 
 % TODO: jmps add, (arithmetic) xor, (logical) cmp test
 
@@ -89,11 +89,28 @@ The types of an operand or identical instructions with different names will be s
   \caption{Instructions}
   \begin{tabular}{|c|p{0.5\linewidth}|c|c|}
     \hline \textbf{Name} & \textbf{Description} & \textbf{Operand 1} & \textbf{Operand 2} \\ \hline
-    \multirow[t]{4}*{\texttt{mov}} & \multirow[t]{4}*{Coppies the value from op2 into op1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
+    \multicolumn{4}{|c|}{Memory} \\ \hline
+    \multirow[t]{4}*{\texttt{MOV}} & \multirow[t]{4}*{Coppies the value from OP2 into OP1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
                                    & & \texttt{m} & \texttt{r|i} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{s} \\ \cline{3-4}
                                    & & \texttt{s} & \texttt{r|m} \\ \hline
-    \texttt{lea} & Stores the address from op2 into op1 but unlike mov it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
+    \texttt{LEA} & Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
+    \texttt{CMPXCHG} & Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared. If OP1 is \texttt{m} then the instruction can be prefixed with LOCK to make it atomic & \texttt{r|m} & \texttt{r} \\ \hline
+    \multirow[t]{2}*{\texttt{XCHG}} & \multirow[t]{2}*{Swaps the value held in OP1 and OP2} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{r} \\ \hline
+    \multicolumn{4}{|c|}{Control} \\ \hline
+    \texttt{UD} & Causes an invalid opcode exception & \texttt{-} & \texttt{-} \\ \hline
+    \multicolumn{4}{|c|}{Arithmetic} \\ \hline
+    \multirow[t]{3}*{\texttt{ADD}} & \multirow[t]{3}{\linewidth}{Adds OP2 to OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
+    \multirow[t]{3}*{\texttt{ADC}} & \multirow[t]{3}{\linewidth}{Adds (OP2 + CF) to OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
+    \multirow[t]{3}*{\texttt{SUB}} & \multirow[t]{3}{\linewidth}{Subtracts OP2 from OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
+                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
+    \multicolumn{4}{|c|}{Logical} \\ \hline
   \end{tabular}
 \end{table}
 
