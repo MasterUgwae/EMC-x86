@@ -101,6 +101,9 @@ INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/tctt0800.tfm
 INPUT ../linux_syscalls/64.asm
 INPUT ../linux_syscalls/64.asm
 INPUT ../linux_syscalls/64.asm
+INPUT ../subtraction/64.asm
+INPUT ../subtraction/64.asm
+INPUT ../subtraction/64.asm
 INPUT main.aux
 INPUT /home/william/.texlive/texmf-var/fonts/pk/ljfour/jknappen/ec/tctt0800.600pk
 INPUT /home/william/.texlive/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk

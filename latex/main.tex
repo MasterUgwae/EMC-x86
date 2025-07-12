@@ -131,11 +131,11 @@ Processors operate on digital signals which can either be high or low and can be
     \textbf{Name} & \textbf{Unit} & \textbf{Bits} & \textbf{Bytes} \\
     \hline
     bit & b & 1 & 1/8 \\
-    nibble & N/A & 4 & 1/2 \\
+    nibble & - & 4 & 1/2 \\
     byte & B & 8 & 1 \\
-    word & N/A & 16 & 2 \\
-    dword (double word) & N/A & 32 & 4 \\
-    qword (quad word) & N/A & 64 & 8
+    word & - & 16 & 2 \\
+    dword (double word) & - & 32 & 4 \\
+    qword (quad word) & - & 64 & 8
   \end{tabular}
 \end{table}
 
@@ -273,7 +273,7 @@ The parameters for the syscall are placed in specific registers.
   \centering
   \caption{Registers used for syscall parameters (not all args are used for all syscalls)}
   \begin{tabular}{c|c|l}
-    \textbf{i386 Registers} & \textbf{x86-64 Registers} & \textbf{Useage} \\
+    \textbf{i386 Registers} & \textbf{x86-64 Registers} & \textbf{Usage} \\
     \hline
     eax & rax & Syscall number (different in 32-bit and 64-bit programs) \\
     ebx & rdi & Arg1 \\
@@ -295,6 +295,8 @@ The parameters for the syscall are placed in specific registers.
     \hline \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} \\
     \hline \texttt{write} & 4 & 1 & fd & ptr & count & - & - & - \\
     \hline \multicolumn{9}{|p{0.97\linewidth}|}{Writes the buffer (count bytes pointed to by ptr) to the file} \\
+    \hline \texttt{read} & 3 & 0 & fd & ptr & count & - & - & - \\
+    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Attemps to read count bytes from the current position of the file into the buffer pointed to by ptr, the accumulator stores the true number of bytes read (if EOF less bytes would be read) and the position in the file is advanced by this many bytes. On error, -1 is returned instead} \\
     \hline \texttt{exit} & 1 & 60 & error & - & - & - & - & - \\
     \hline \multicolumn{9}{|p{0.97\linewidth}|}{Exits the program with the specified error code} \\
     \hline \texttt{munmap} & 91 & 11 & addr & length & - & - & - & - \\
@@ -323,6 +325,11 @@ This program prints "Hello World" to the terminal then exits without an error.
 \lstinputlisting{../linux_syscalls/32.asm}
 64-bit code:
 \lstinputlisting{../linux_syscalls/64.asm}
+
+\subsubsection{Difference}
+This program reads two inputs from stdin and writes their difference to stdout
+
+\lstinputlisting{../subtraction/64.asm}
 
 \section{Index}
 
