@@ -3,10 +3,11 @@
 \usepackage{url}
 \usepackage{listings}
 \usepackage{listings-rust}
+\usepackage{makecell}
 \usepackage{multirow}
 \usepackage{xcolor}
 \usepackage{float}
-\usepackage[a4paper, left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
+\usepackage[a4paper, left=1.5cm, right=1.5cm, top=2cm, bottom=2cm]{geometry}
 \usepackage{array}
  
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -93,23 +94,6 @@ Processors operate on digital signals which can either be high or low and can be
     word & - & 16 & 2 \\
     dword (double word) & - & 32 & 4 \\
     qword (quad word) & - & 64 & 8 \\
-    \hline
-  \end{tabular}
-\end{table}
-
-\noindent
-Furthermore, prefixes can be added to the units to multiply the amount it stores
-\begin{table}[H]
-  \centering
-  \caption{Data prefixes}
-  \begin{tabular}{|c|c|c|c|}
-    \hline \textbf{Denary name} & \textbf{Denary size} & \textbf{Binary name} & \textbf{Binary size} \\
-    \hline
-    K & $10^3$ & Ki & $2^{10}$ \\
-    M & $10^6$ & Mi & $2^{20}$ \\
-    G & $10^9$ & Gi & $2^{30}$ \\
-    T & $10^{12}$ & Ti & $2^{40}$ \\
-    P & $10^{15}$ & Pi & $2^{50}$ \\
     \hline
   \end{tabular}
 \end{table}
@@ -210,37 +194,47 @@ Each instruction has different limitations to what type an operand can be, these
   \end{tabular}
 \end{table}
 
-The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type. Furthermore, some instructions have more than one row of operands, each row shows a different combination of operand types. Most instructions should only operate on a single word size (eg 64-bit), if an instruction is used with different sized operands then it may cause an assembler error, cause an invalid opcode exception, truncate the source or bit extend it (either arithmetically or logically). Furthermore many of these instructions set/clear flags, for example the OF (overflow flag) is set on signed overflow, CF (carry flag) is set on unsigned overflow and ZF (zero flag) is set when the result is zero.
+The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type.
+Some instructions have more than one row of operands, each row shows a different combination of operand types. Most instructions should only operate on a single word size (eg 64-bit), if an instruction is used with different sized operands then it may cause an assembler error, cause an invalid opcode exception, truncate the source or bit extend it (either arithmetically or logically).
+Furthermore many of these instructions set/clear flags, for example the OF (overflow flag) is set on signed overflow, CF (carry flag) is set on unsigned overflow and ZF (zero flag) is set when the result is zero.
+Some instructions can be prefixed with LOCK, this makes the instruction atomic and will give the thread exclusive access to the cache line it is accessing; LOCK can only be used when the destination is a memory location and the instruction supports it else it will raise a UD exception.
 
-% TODO: (arithmetic) xor, (logical) cmp test
+% TODO: (arithmetic) xor, (logical) cmp test, CACHE LINE
+% LOCK: ADD, ADC, AND, BTC, BTR, BTS, CMPXCHG, CMPXCH8B, CMPXCHG16B, DEC, INC, NEG, NOT, OR, SBB, SUB, XOR, XADD, and XCHG
 
 \begin{table}[H]
   \centering
   \caption{Instructions}
-  \begin{tabular}{|c|p{0.5\linewidth}|c|c|}
+  \begin{tabular}{|c|p{0.45\linewidth}|c|c|}
     \hline \textbf{Name} & \textbf{Description} & \textbf{Operand 1} & \textbf{Operand 2} \\ \hline
     \multicolumn{4}{|c|}{Memory} \\ \hline
-    \multirow[t]{4}*{\texttt{MOV}} & \multirow[t]{4}*{Coppies the value from OP2 into OP1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
+    \multirow[t]{4}*{\makecell[t]{\texttt{MOV} \\ Move}} & \multirow[t]{4}*{Coppies the value from OP2 into OP1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
                                    & & \texttt{m} & \texttt{r|i} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{s} \\ \cline{3-4}
                                    & & \texttt{s} & \texttt{r|m} \\ \hline
-    \texttt{LEA} & Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
-    \texttt{CMPXCHG} & Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared. If OP1 is \texttt{m} then the instruction can be prefixed with LOCK to make it atomic & \texttt{r|m} & \texttt{r} \\ \hline
-    \multirow[t]{2}*{\texttt{XCHG}} & \multirow[t]{2}*{Swaps (exchanges) the values held in OP1 and OP2} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+    \makecell[t]{\texttt{LEA} \\ Load Effective Address} & Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
+    \makecell[t]{\texttt{[LOCK] CMPXCHG} \\ Compare and Exchange} & Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared & \texttt{r|m} & \texttt{r} \\ \hline
+    \multirow[t]{2}*{\makecell[t]{\texttt{[LOCK] XCHG} \\ Exchange}} & \multirow[t]{2}{\linewidth}{Swaps (exchanges) the values held in OP1 and OP2} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{r} \\ \hline
     \multicolumn{4}{|c|}{Control} \\ \hline
-    \texttt{UD} & Causes an invalid opcode exception & \texttt{-} & \texttt{-} \\ \hline
+    \makecell[t]{\texttt{UD} \\ Undefined Instruction} & Causes an invalid opcode exception & \texttt{-} & \texttt{-} \\ \hline
     \multicolumn{4}{|c|}{Arithmetic} \\ \hline
-    \multirow[t]{3}*{\texttt{ADD}} & \multirow[t]{3}{\linewidth}{Adds OP2 to OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADD} \\ Add}} & \multirow[t]{3}{\linewidth}{Adds OP2 to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
-    \multirow[t]{3}*{\texttt{ADC}} & \multirow[t]{3}{\linewidth}{Adds (OP2 + CF) to OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+    \makecell[t]{\texttt{[LOCK] INC} \\ Increment} & Increments the value in OP1 by 1 & \texttt{r|m} & \texttt{-} \\ \hline
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADC} \\ Add With Carry}} & \multirow[t]{3}{\linewidth}{Adds (OP2 + CF) to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
-    \multirow[t]{3}*{\texttt{SUB}} & \multirow[t]{3}{\linewidth}{Subtracts OP2 from OP1. If OP2 is \texttt{i} and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] SUB} \\ Subtract}} & \multirow[t]{3}{\linewidth}{Subtracts OP2 from OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
                                    & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
+    \makecell[t]{\texttt{[LOCK] DEC} \\ Decrement} & Decrements the value in OP1 by 1 & \texttt{r|m} & \texttt{-} \\ \hline
     \multicolumn{4}{|c|}{Logical} \\ \hline
+    \makecell[t]{\texttt{BT} \\ Bit Test} & Stores the OP2 (mod OP1 size) bit in OP1 into CF & \texttt{r|m} & \texttt{r|i8} \\ \hline
+    \makecell[t]{\texttt{[LOCK] BTC} \\ Bit Test and Complement} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and complements the bit in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
+    \makecell[t]{\texttt{[LOCK] BTR} \\ Bit Test and Reset} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and resets the bit (to 0) in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
+    \makecell[t]{\texttt{[LOCK] BTS} \\ Bit Test and Set} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and sets the bit (to 1) in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
   \end{tabular}
 \end{table}
 
@@ -249,34 +243,53 @@ The types of an operand or identical instructions with different names will be s
 \subsection{Data section}
 db, equ, \$ etc
 
-\section{Operating modes}
+\section{x86 architecture}
+% TODO: BIOS + UEFI
+% TODO: GDT
+
+\subsection{Branch prediction}
+Spectre/meltdown
+
+\subsection{Operating modes}
 
 x86 processors have several different operating modes that they can run in, these operating modes can change the addressing mode, available instruction set and registers. x86 processors start up in real mode from address 0xFFFF0. % TODO: , however the BIOS will start running the OS (WHERE???), and UEFI????
 
 \begin{table}[H]
   \centering
   %\caption{}
-  \begin{tabular}{r|p{0.65\linewidth}}
-    \textbf{Name} & \textbf{Description} \\
-    \hline
-    Real mode & Also called real address mode, all addresses always correspond to physical (real) memory addresses. Memory addresses are 20 bit allowing for 1MiB of memory, they are referenced by the value in a segment register left shifted by 4 then added to an offset for example [es:di]. There is no memory protection in real mode, and all x86 CPU's start in real mode when reset for compatibility \\
-    Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB of memory \\
-    Protected mode & Also called protected virtual address mode, it allows the use of segmentation, virtual memory, paging and safe multi-tasking. To enter protected mode the software must setup a descriptor table and enable the Protection Enable (PE) bit in CR0 (Intel 80286). \\
-    Virtual 8086 mode & Also called virtual read mode, it allows real mode processes to run in protected mode. It is a hardware virtualisation technique and uses the 20-bit segmentation that real mode uses but is subject to the protected mode's memory paging. \\
-    Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\
-    x86 virtualisation mode & Mode that uses hardware assisted virtualisation. \\
-    AIS and 8080 emulation mode & Rarely used operating modes found on only a few old CPUs.
+  \begin{tabular}{|r|p{0.65\linewidth}|}
+    \hline \textbf{Name} & \textbf{Description} \\ \hline
+    Real mode & Also called real address mode, all addresses always correspond to physical (real) memory addresses. Memory addresses are 20 bit allowing for 1MiB of memory, they are referenced by the value in a segment register left shifted by 4 then added to an offset for example [es:di]. There is no memory protection in real mode, and all x86 CPU's start in real mode when reset for compatibility \\ \hline
+    Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB of memory \\ \hline
+    Protected mode & Also called protected virtual address mode, it allows the use of segmentation, virtual memory, paging and safe multi-tasking. To enter protected mode the software must setup a descriptor table and enable the Protection Enable (PE) bit in CR0 (Intel 80286). \\ \hline
+    Virtual 8086 mode & Also called virtual read mode, it allows real mode processes to run in protected mode. It is a hardware virtualisation technique and uses the 20-bit segmentation that real mode uses but is subject to the protected mode's memory paging. \\ \hline
+    Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\ \hline
+    x86 virtualisation mode & Mode that uses hardware assisted virtualisation. \\ \hline
+    AIS and 8080 emulation mode & Rarely used operating modes found on only a few old CPUs. \\ \hline
   \end{tabular}
 \end{table}
 
 % TODO: Virtualisation
 
-\section{Branch prediction}
-Spectre/meltdown
-
-\section{x86 architecture}
-
 \section{Interrupts}
+
+% https://wiki.osdev.org/Interrupts
+Interrupts are signals from devices to the CPU which makes it immediately pause execution and run code to handle the interrupt. When an interrupt occurs, the CPU finds its entry in an OS provided lookup table called the Interrupt Descriptor Table (IDT) and can have up to 256 entries; once the CPU locates the entry, it jumps to the code to handle the interrupt which is called the Interrupt Service Routine (ISR) or interrupt handler.
+
+There are three types of interrupts:
+\begin{enumerate}
+  \item Exceptions: Generated internally by the CPU and are used to alert the kernel of an event which requires its attention such as a Double Fault, Page Fault, General Protection Fault, etc
+  \item Interrupt Request (IQR) or Hardware Interrupt:
+  \item C % TODO: this
+\end{enumerate}
+
+\subsection{IDT}
+
+\subsection{ISR}
+
+\subsection{BIOS interrupts}
+
+\subsection{UEFI interrupts}
 
 \subsection{Syscalls (on Linux)}
 
@@ -284,21 +297,19 @@ In order for a program to communicate with the OS it has to hand over control of
 In 32-bit programs it uses the interrupt \texttt{int 80h}, in 64-bit programs it uses the instruction \texttt{syscall}.
 The parameters for the syscall are placed in specific registers.
 
-
 % https://www.man7.org/linux/man-pages/man2/syscall.2.html
 \begin{table}[H]
   \centering
   \caption{Registers used for syscall parameters (not all args are used for all syscalls)}
-  \begin{tabular}{c|c|l}
-    \textbf{i386 Registers} & \textbf{x86-64 Registers} & \textbf{Usage} \\
-    \hline
-    eax & rax & Syscall number (different in 32-bit and 64-bit programs) \\
-    ebx & rdi & Arg1 \\
-    ecx & rsi & Arg2 \\
-    edx & rdx & Arg3 \\
-    esi & r10 & Arg4 \\
-    edi & r8 & Arg5 \\
-    ebp & r9 & Arg6
+  \begin{tabular}{|c|c|l|}
+    \hline \textbf{i386 Registers} & \textbf{x86-64 Registers} & \textbf{Usage} \\ \hline
+    EAX & RAX & Syscall number (different in 32-bit and 64-bit programs) \\
+    EBX & RDI & Arg1 \\
+    ECX & RSI & Arg2 \\
+    EDX & RDX & Arg3 \\
+    ESI & R10 & Arg4 \\
+    EDI & R8 & Arg5 \\
+    EBP & R9 & Arg6 \\ \hline
   \end{tabular}
 \end{table}
 
@@ -309,7 +320,7 @@ The parameters for the syscall are placed in specific registers.
   \caption{Common Linux Syscalls}
   \begin{tabular}{|*{9}{>{\centering\arraybackslash}p{0.085\linewidth}|}}
     % TODO: Read, open, close
-    \hline \textbf{Name} & \textbf{eax} & \textbf{rax} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} \\
+    \hline \textbf{Name} & \textbf{EAX} & \textbf{RAX} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} \\
     \hline \texttt{write} & 4 & 1 & fd & ptr & count & - & - & - \\
     \hline \multicolumn{9}{|p{0.97\linewidth}|}{Writes the buffer (count bytes pointed to by ptr) to the file} \\
     \hline \texttt{read} & 3 & 0 & fd & ptr & count & - & - & - \\

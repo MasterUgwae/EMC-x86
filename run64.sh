@@ -30,6 +30,7 @@ for arg in "${@:2}"; do
 	fi
 done
 
+BASE="${BASE}.bin"
 ld "${OBJECTS[@]}" -o $BASE || exit 1
 $BASE
 
