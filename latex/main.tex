@@ -202,39 +202,62 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
 % TODO: (arithmetic) xor, (logical) cmp test, CACHE LINE
 % LOCK: ADD, ADC, AND, BTC, BTR, BTS, CMPXCHG, CMPXCH8B, CMPXCHG16B, DEC, INC, NEG, NOT, OR, SBB, SUB, XOR, XADD, and XCHG
 
+\newcommand{\inslinew}{4} % Num of columns
+\newcommand{\institle}[1]{\multicolumn{\inslinew}{|c|}{#1} \\ \hline}
+\newcommand{\inspad}{ & & } % Padding for rows of not-first-row operands
+\newcommand{\insend}{\\ \hline} % End of final row of operands
+\newcommand{\insmid}{\\ \cline{3-4}} % End of all other rows of operands
+\newcommand{\insop}{\texttt{-} & \texttt{-}}% & \texttt{-}} % 0 Operands
+\newcommand{\insopx}[1]{\texttt{#1} & \texttt{-}}% & \texttt{-}} % 1 Operand
+\newcommand{\insopxx}[2]{\texttt{#1} & \texttt{#2}}% & \texttt{-}} % 2 Operands
+\newcommand{\insopxxx}[3]{\texttt{#1} & \texttt{#2}}% & \texttt{#3}} % 3 Operands
+
 \begin{table}[H]
   \centering
   \caption{Instructions}
   \begin{tabular}{|c|p{0.45\linewidth}|c|c|}
-    \hline \textbf{Name} & \textbf{Description} & \textbf{Operand 1} & \textbf{Operand 2} \\ \hline
-    \multicolumn{4}{|c|}{Memory} \\ \hline
-    \multirow[t]{4}*{\makecell[t]{\texttt{MOV} \\ Move}} & \multirow[t]{4}*{Coppies the value from OP2 into OP1} & \texttt{r} & \texttt{r|m|i} \\ \cline{3-4}
-                                   & & \texttt{m} & \texttt{r|i} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{s} \\ \cline{3-4}
-                                   & & \texttt{s} & \texttt{r|m} \\ \hline
-    \makecell[t]{\texttt{LEA} \\ Load Effective Address} & Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address & \texttt{r16|r32|r64} & \texttt{m} \\ \hline
-    \makecell[t]{\texttt{[LOCK] CMPXCHG} \\ Compare and Exchange} & Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared & \texttt{r|m} & \texttt{r} \\ \hline
-    \multirow[t]{2}*{\makecell[t]{\texttt{[LOCK] XCHG} \\ Exchange}} & \multirow[t]{2}{\linewidth}{Swaps (exchanges) the values held in OP1 and OP2} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{r} \\ \hline
-    \multicolumn{4}{|c|}{Control} \\ \hline
-    \makecell[t]{\texttt{UD} \\ Undefined Instruction} & Causes an invalid opcode exception & \texttt{-} & \texttt{-} \\ \hline
-    \multicolumn{4}{|c|}{Arithmetic} \\ \hline
-    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADD} \\ Add}} & \multirow[t]{3}{\linewidth}{Adds OP2 to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
-    \makecell[t]{\texttt{[LOCK] INC} \\ Increment} & Increments the value in OP1 by 1 & \texttt{r|m} & \texttt{-} \\ \hline
-    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADC} \\ Add With Carry}} & \multirow[t]{3}{\linewidth}{Adds (OP2 + CF) to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
-    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] SUB} \\ Subtract}} & \multirow[t]{3}{\linewidth}{Subtracts OP2 from OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} & \texttt{r} & \texttt{r|m} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{r} \\ \cline{3-4}
-                                   & & \texttt{r|m} & \texttt{i8|i16|i32} \\ \hline
-    \makecell[t]{\texttt{[LOCK] DEC} \\ Decrement} & Decrements the value in OP1 by 1 & \texttt{r|m} & \texttt{-} \\ \hline
-    \multicolumn{4}{|c|}{Logical} \\ \hline
-    \makecell[t]{\texttt{BT} \\ Bit Test} & Stores the OP2 (mod OP1 size) bit in OP1 into CF & \texttt{r|m} & \texttt{r|i8} \\ \hline
-    \makecell[t]{\texttt{[LOCK] BTC} \\ Bit Test and Complement} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and complements the bit in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
-    \makecell[t]{\texttt{[LOCK] BTR} \\ Bit Test and Reset} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and resets the bit (to 0) in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
-    \makecell[t]{\texttt{[LOCK] BTS} \\ Bit Test and Set} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and sets the bit (to 1) in OP2 & \texttt{r|m} & \texttt{r|i8} \\ \hline
+    \hline \textbf{Name} & \makecell[c]{\textbf{Description}} & \textbf{OP 1} & \textbf{OP 2} \\ \hline
+    \institle{Memory}
+    \multirow[t]{3}*{\makecell[t]{\texttt{MOV} \\ Move}} & \multirow[t]{3}*{Copies the value from OP2 into OP1} &
+      \insopxx{r}{r|m|i|s} \insmid
+      \inspad \insopxx{m}{r|i|s} \insmid
+      \inspad \insopxx{s}{r|m} \insend
+    \makecell[t]{\texttt{LEA} \\ Load Effective Address} & Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address &
+      \insopxx{r16|r32|r64}{m} \insend
+    \makecell[t]{\texttt{[LOCK] CMPXCHG} \\ Compare and Exchange} & Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared &
+      \insopxx{r|m}{r} \insend
+    \multirow[t]{2}*{\makecell[t]{\texttt{[LOCK] XCHG} \\ Exchange}} & \multirow[t]{2}{\linewidth}{Swaps (exchanges) the values held in OP1 and OP2} &
+      \insopxx{r}{r|m} \insmid
+      \inspad \insopxx{r|m}{r} \insend
+    \institle{Control}
+    \makecell[t]{\texttt{UD} \\ Undefined Instruction} & Causes an invalid opcode exception &
+      \insop \insend
+    \institle{Arithmetic}
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADD} \\ Add}} & \multirow[t]{3}{\linewidth}{Adds OP2 to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} &
+      \insopxx{r}{r|m} \insmid
+      \inspad \insopxx{r|m}{r} \insmid
+      \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \makecell[t]{\texttt{[LOCK] INC} \\ Increment} & Increments the value in OP1 by 1 &
+      \insopx{r|m} \insend
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] ADC} \\ Add With Carry}} & \multirow[t]{3}{\linewidth}{Adds (OP2 + CF) to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} &
+      \insopxx{r}{r|m} \insmid
+      \inspad \insopxx{r|m}{r} \insmid
+      \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \multirow[t]{3}*{\makecell[t]{\texttt{[LOCK] SUB} \\ Subtract}} & \multirow[t]{3}{\linewidth}{Subtracts OP2 from OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended} &
+      \insopxx{r}{r|m} \insmid
+      \inspad \insopxx{r|m}{r} \insmid
+      \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \makecell[t]{\texttt{[LOCK] DEC} \\ Decrement} & Decrements the value in OP1 by 1 &
+      \insopx{r|m} \insend
+    \institle{Logical}
+    \makecell[t]{\texttt{BT} \\ Bit Test} & Stores the OP2 (mod OP1 size) bit in OP1 into CF &
+      \insopxx{r|m}{r|i8} \insend
+    \makecell[t]{\texttt{[LOCK] BTC} \\ Bit Test and Complement} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and complements the bit in OP2 &
+      \insopxx{r|m}{r|i8} \insend
+    \makecell[t]{\texttt{[LOCK] BTR} \\ Bit Test and Reset} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and resets the bit (to 0) in OP2 &
+      \insopxx{r|m}{r|i8} \insend
+    \makecell[t]{\texttt{[LOCK] BTS} \\ Bit Test and Set} & Stores the OP2 (mod OP1 size) bit in OP1 into CF and sets the bit (to 1) in OP2 &
+      \insopxx{r|m}{r|i8} \insend
   \end{tabular}
 \end{table}
 
