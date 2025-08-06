@@ -25,4 +25,4 @@ done
 
 output="$(pwd)/${1%.*}.bin"
 ld "${objects[@]}" -o $output || exit 1
-$output
+echo $output

@@ -13,4 +13,4 @@ if [ $SELECTED -ne "1" ] && [ $SELECTED -ne "2" ] && [ $SELECTED -ne "3" ] && [ 
 	exit 1
 fi
 
-xdg-open "${DIR_PATH}/x86v${SELECTED}.pdf"
+xdg-open "${DIR_PATH}/x86v${SELECTED}.pdf" &

@@ -195,7 +195,7 @@ Each instruction has different limitations to what type an operand can be, these
   \end{tabular}
 \end{table}
 
-The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type.
+The types of an operand or identical instructions with different names will be seperated by a \texttt{|}, the size in bits may also be appended to the type and a ' may be used to exclude a single size (eg \texttt{i8|i16} means an 8 or 16 bit immediate value and \texttt{r'8} means a 16, 32 or 64 bit register).
 Some instructions have more than one row of operands, each row shows a different combination of operand types. Most instructions should only operate on a single word size (eg 64-bit), if an instruction is used with different sized operands then it may cause an assembler error, cause an invalid opcode exception, truncate the source or bit extend it (either arithmetically or logically).
 Furthermore many of these instructions set/clear flags, for example the OF (overflow flag) is set on signed overflow, CF (carry flag) is set on unsigned overflow and ZF (zero flag) is set when the result is zero.
 Some instructions can be prefixed with LOCK, this makes the instruction atomic and will give the thread exclusive access to the cache line it is accessing; LOCK can only be used when the destination is a memory location and the instruction supports it else it will raise a UD exception.
@@ -205,71 +205,93 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
 % LOCK: ADD, ADC, AND, BTC, BTR, BTS, CMPXCHG, CMPXCH8B, CMPXCHG16B, DEC, INC, NEG, NOT, OR, SBB, SUB, XOR, XADD, and XCHG
 
 \newcommand{\insend}{\end{tabular} \setlength{\tabcolsep}{0pt} \\ \hline} % End of final row of operands
-\newcommand{\institle}[1]{
-  \begin{tabular}[t]{>{\centering\arraybackslash}p{1\linewidth}}
-  {#1} \insend
-}
-\newcommand{\inspad}{ & } % Padding for rows of not-first-row operands
+\newcommand{\institle}[1]{#1 \\ \hline}
+\newcommand{\instable}{\setlength{\tabcolsep}{6pt} \begin{tabular}[t]{>{\centering\arraybackslash}p{0.555\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}}}
 \newcommand{\inslineb}{\\ & \multicolumn{3}{c}{}}
 \newcommand{\inslinea}{\\ \cline{2-4} & \multicolumn{3}{c}{}}
-\newcommand{\insmid}{\\ \cline{2-4}} % End of all other rows of operands
+\newcommand{\insmid}{\\ \cline{2-4} &} % End of all other rows of operands
 \newcommand{\insop}{\texttt{-} & \texttt{-} & \texttt{-}} % 0 Operands
 \newcommand{\insopx}[1]{\texttt{#1} & \texttt{-} & \texttt{-}} % 1 Operand
 \newcommand{\insopxx}[2]{\texttt{#1} & \texttt{#2} & \texttt{-}} % 2 Operands
 \newcommand{\insopxxx}[3]{\texttt{#1} & \texttt{#2} & \texttt{#3}} % 3 Operands
-\newcommand{\insname}[4]{
-  \setlength{\tabcolsep}{6pt}
-  \begin{tabular}[t]{p{0.555\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}}
-  \multirow[t]{#1}{\linewidth}{\makecell[tp{\linewidth}]{\makecell[c]{\texttt{#2} - #3} \\ #4}} &
-}
+\newcommand{\insname}[4]{\instable \multirow[t]{#1}{\linewidth}{\makecell[tp{\linewidth}]{\makecell[c]{\texttt{#2} - #3} \\ #4}} &}
 
 \setlength{\tabcolsep}{0pt}
-\begin{longtable}{|>{\centering\arraybackslash}p{0.998\linewidth}|}
-  \hline \setlength{\tabcolsep}{6pt} \begin{tabular}[t]{>{\centering\arraybackslash}p{0.555\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}}
-  \textbf{Instruction} & \textbf{OP 1} & \textbf{OP 2} & \textbf{OP 3} \insend
+\begin{longtable}{|>{\centering\arraybackslash}p{\dimexpr\linewidth-1pt\relax}|}
+  \hline \instable \textbf{Instruction} & \textbf{OP 1} & \textbf{OP 2} & \textbf{OP 3} \insend
+
   \institle{Memory}
+
   \insname{3}{MOV}{Move}{Copies the value from OP2 into OP1}
     \insopxx{r}{r|m|i|s} \insmid
-    \inspad \insopxx{m}{r|i|s} \insmid
-    \inspad \insopxx{s}{r|m} \insend
+    \insopxx{m}{r|i|s} \insmid
+    \insopxx{s}{r|m} \insend
   \insname{3}{LEA}{Load Effective Address}{Stores the address from OP2 into OP1 but unlike MOV it does not dereference the address}
-    \insopxx{r16|r32|r64}{m} \inslinea \inslineb \insend
+    \insopxx{r'8}{m} \inslinea \inslineb \insend
   \insname{4}{[LOCK] CMPXCHG}{Compare and Exchange}{Compares \texttt{AL|AX|EAX|RAX} with OP1 (dst), if equal OP2 (src) is written into OP1 and ZF is set else OP1 is written into the accumulator and ZF is cleared}
     \insopxx{r|m}{r} \inslinea \inslineb \inslineb \insend
   \insname{2}{[LOCK] XCHG}{Exchange}{Swaps (exchanges) the values held in OP1 and OP2}
     \insopxx{r}{r|m} \insmid
-    \inspad \insopxx{r|m}{r} \insend
+    \insopxx{r|m}{r} \insend
+
   \institle{Control}
+
   \insname{2}{UD}{Undefined Instruction}{Causes an invalid opcode exception}
     \insop \inslinea \insend
+  \insname{4}{NOP}{No Operation}{Performs no operation, the first encoding is a single byte NOP and is an alias for XCHG (E)AX, (E)AX, and the second encoding is a multibyte NOP and may not be supported on all processors}
+    \insop \insmid
+    \insopx{r|m} \inslinea \inslineb \insend
+  \insname{3}{CMP}{Compare Two Operands}{Compares OP1 with OP2, it does this by subtracting OP2 from OP1, setting the relevant flag and discarding the result}
+    \insopxx{r}{r|m} \insmid
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r|m}{i'64} \insend
+  \insname{3}{TEST}{Logical Compare}{Performs a bitwise logical AND on OP1 and OP2, sets the relevant flags and discards the result}
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r|m}{i'64} \inslinea \insend
+
+  \institle{Functions}
+
+  \insname{10}{PUSH}{Push data onto the stack}{Decrements the Stack Pointer by the operand size, then moves OP1 to the memory location pointed to by the it. It is recommended to only push values the same size as the pointer size to prevent a misaligned stack. Values less than the operand size are sign-extended to the operand size however segment registers are zero-extended. The operand size can be overridden by prefixes however is based ont he current stack segment D flag. In long mode, 32-bit registers and the CS,DS,ES and SS registers cannot be encoded}
+    \insopx{(r|m)'8} \insmid
+    \insopx{i'64} \insmid
+    \insopx{s} \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
+  \insname{4}{POP}{Pop data off the stack}{Moves the value pointed to by the Stack Pointer to OP1 then increments it by the operand size. Uses the same rules as PUSH}
+    \insopx{(r|m)'8} \insmid
+    \insopx{s} \inslinea \insend
+
   \institle{Arithmetic}
+
   \insname{3}{[LOCK] ADD}{Add}{Adds OP2 to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended}
     \insopxx{r}{r|m} \insmid
-    \inspad \insopxx{r|m}{r} \insmid
-    \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r|m}{i'64} \insend
   \insname{2}{[LOCK] INC}{Increment}{Increments the value in OP1 by 1}
     \insopx{r|m} \inslinea \insend
   \insname{3}{[LOCK] ADC}{Add With Carry}{Adds (OP2 + CF) to OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended}
     \insopxx{r}{r|m} \insmid
-    \inspad \insopxx{r|m}{r} \insmid
-    \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r|m}{i'64} \insend
   \insname{3}{[LOCK] SUB}{Subtract}{Subtracts OP2 from OP1. If OP2 is an \texttt{immediate} value and its word size is less than OP1 then it is sign-extended}
     \insopxx{r}{r|m} \insmid
-    \inspad \insopxx{r|m}{r} \insmid
-    \inspad \insopxx{r|m}{i8|i16|i32} \insend
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r|m}{i'64} \insend
   \insname{2}{[LOCK] DEC}{Decrement}{Decrements the value in OP1 by 1}
     \insopx{r|m} \inslinea \insend
   \insname{3}{MUL}{Unsigned Multiply}{Performs unsigned integer multiplication on \texttt{AL|AX|EAX|RAX} and OP1, and stores the result in \texttt{AX|DX:AX|EDX:EAX|RDX:RAX}}
     \insopx{r|m} \inslinea \inslineb \insend
   \insname{6}{IMUL}{Signed Multipy}{Multiplies signed integers. In the first encoding \texttt{AL|AX|EAX|RAX} is multiplied by OP1 and is stored in \texttt{AX|DX:AX|EDX:EAX|RDX:RAX}. In the second OP1 is multiplied by OP2, the result is truncated and stored in OP1. In the third OP1 is multiplied by the product of OP2 and OP3, the result is truncated and stored in OP1}
     \insopx{r|m} \insmid
-    \inspad \insopxx{r}{r|m} \insmid
-    \inspad \insopxxx{r}{r|m}{i8|i16|i32} \inslinea \inslineb \inslineb \insend
-  \insname{5}{DIV}{Unsigned Divide}{Divides unsigned integers, it divides \texttt{AX|DX:AX|EDX:EAX|RDX:RAX} by OP1, stores the quotient in \texttt{AL|AX|EAX|RAX} and stores the remainder in \texttt{AH|DX|EDX|RDX}. Causes a Divide Error exception if OP1 is 0 or the quotient is larger than its destination register}
+    \insopxx{r}{r|m} \insmid
+    \insopxxx{r}{r|m}{i'64} \inslinea \inslineb \inslineb \insend
+  \insname{5}{DIV}{Unsigned Divide}{Divides unsigned integers. It divides \texttt{AX|DX:AX|EDX:EAX|RDX:RAX} by OP1, stores the quotient in \texttt{AL|AX|EAX|RAX} and stores the remainder in \texttt{AH|DX|EDX|RDX}. Causes a Divide Error exception if OP1 is 0 or the quotient is larger than its destination register}
     \insopx{r|m} \inslinea \inslineb \inslineb \inslineb \insend
   \insname{5}{IDIV}{Signed Divide}{Divides signed integers. It divides \texttt{AX|DX:AX|EDX:EAX|RDX:RAX} by OP1, stores the quotient in \texttt{AL|AX|EAX|RAX} and stores the remainder in \texttt{AH|DX|EDX|RDX}. Causes a Divide Error exception if OP1 is 0 or the quotient is larger than its destination register}
     \insopx{r|m} \inslinea \inslineb \inslineb \inslineb \insend
+  \insname{3}{[LOCK] NEG}{Two's Complement Negation}{Replaces OP1 with its two's complement (the same as subtracting it from 0)}
+    \insopx{r|m} \inslinea \inslineb \insend
+
   \institle{Logical}
+
   \insname{2}{BT}{Bit Test}{Stores the OP2 (mod OP1 size) bit in OP1 into CF}
     \insopxx{r|m}{r|i8} \inslinea \insend
   \insname{3}{[LOCK] BTC}{Bit Test and Complement}{Stores the OP2 (mod OP1 size) bit in OP1 into CF and complements the bit in OP2}
@@ -278,6 +300,19 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
     \insopxx{r|m}{r|i8} \inslinea \inslineb \insend
   \insname{3}{[LOCK] BTS}{Bit Test and Set}{Stores the OP2 (mod OP1 size) bit in OP1 into CF and sets the bit (to 1) in OP2}
     \insopxx{r|m}{r|i8} \inslinea \inslineb \insend
+  \insname{3}{[LOCK] XOR}{Logical Exclusive OR}{Performs a bitwise XOR on OP1 and OP2 and stores the result in OP1}
+    \insopxx{r|m}{i'64} \insmid
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r}{r|m} \insend
+  \insname{3}{[LOCK] AND}{Logical AND}{Performs a bitwise AND on OP1 and OP2 and stores the result in OP1}
+    \insopxx{r|m}{i'64} \insmid
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r}{r|m} \insend
+  \insname{3}{[LOCK] OR}{Logical Inclusive OR}{Performs a bitwise OR on OP1 and OP2 and stores the result in OP1}
+    \insopxx{r|m}{i'64} \insmid
+    \insopxx{r|m}{r} \insmid
+    \insopxx{r}{r|m} \insend
+
 \end{longtable}
 \setlength{\tabcolsep}{6pt}
 
@@ -292,6 +327,7 @@ default 64-bit instructions in long mode are:
 CALL (near), ENTER, LEAVE, LGDT, LIDT, LLDT, LOOP, LOOPcc, LTR, MOV CR(n), MOV DR(n), POP r|m, POP r, POP FS, POP GS, POPFQ, PUSH i8, PUSH i32, PUSH r|m, PUSH r, PUSH FS, PUSH GS, PUSHFQ, RET (near)
 Almost every assembler automatically uses the nessissary REX prefixes when required so it is not needed to add
 It can be done by using db followed by the required byte in the line above the instruction
+Sometimes REX can cause AH,BH,CH,DH to be interpreted as SPL, BPL, SIL, DIL
 
 \section{Sections}
 
@@ -318,7 +354,7 @@ x86 processors have several different operating modes that they can run in, thes
     Unreal mode & Also called big real mode, it is a variant of real mode, it allows the access to 4GiB of memory \\ \hline
     Protected mode & Also called protected virtual address mode, it allows the use of segmentation, virtual memory, paging and safe multi-tasking. To enter protected mode the software must setup a descriptor table and enable the Protection Enable (PE) bit in CR0 (Intel 80286). \\ \hline
     Virtual 8086 mode & Also called virtual read mode, it allows real mode processes to run in protected mode. It is a hardware virtualisation technique and uses the 20-bit segmentation that real mode uses but is subject to the protected mode's memory paging. \\ \hline
-    Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\ \hline
+    Long mode & The 64-bit OS can access 64-bit registers and instructions. 64-bit programs run in a sub-mode called 64-bit mode, and 32-bit and 16-bit protected mode programs run in another sub-mode called compatibility mode, however real mode and virtual 8086 mode programs cannot run natively in long mode. \\ \hline
     x86 virtualisation mode & Mode that uses hardware assisted virtualisation. \\ \hline
     AIS and 8080 emulation mode & Rarely used operating modes found on only a few old CPUs. \\ \hline
   \end{tabular}
@@ -356,43 +392,76 @@ The parameters for the syscall are placed in specific registers.
 \begin{table}[H]
   \centering
   \caption{Registers used for syscall parameters (not all args are used for all syscalls)}
-  \begin{tabular}{|c|c|l|}
+  \begin{tabular}{|c|c|p{0.34\linewidth}|}
     \hline \textbf{i386 Registers} & \textbf{x86-64 Registers} & \textbf{Usage} \\ \hline
-    EAX & RAX & Syscall number (different in 32-bit and 64-bit programs) \\
     EBX & RDI & Arg1 \\
     ECX & RSI & Arg2 \\
     EDX & RDX & Arg3 \\
     ESI & R10 & Arg4 \\
     EDI & R8 & Arg5 \\
-    EBP & R9 & Arg6 \\ \hline
-  \end{tabular}
-\end{table}
-
-% WARNING: https://www.man7.org/linux/man-pages/man2/syscalls.2.html
-% WARNING: https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
-\begin{table}[H]
-  \centering
-  \caption{Common Linux Syscalls}
-  \begin{tabular}{|*{9}{>{\centering\arraybackslash}p{0.085\linewidth}|}}
-    % TODO: Read, open, close
-    \hline \textbf{Name} & \textbf{EAX} & \textbf{RAX} & \textbf{Arg1} & \textbf{Arg2} & \textbf{Arg3} & \textbf{Arg4} & \textbf{Arg5} & \textbf{Arg6} \\
-    \hline \texttt{write} & 4 & 1 & fd & ptr & count & - & - & - \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Writes the buffer (count bytes pointed to by ptr) to the file} \\
-    \hline \texttt{read} & 3 & 0 & fd & ptr & count & - & - & - \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Attemps to read count bytes from the current position of the file into the buffer pointed to by ptr, the accumulator stores the true number of bytes read (if EOF less bytes would be read) and the position in the file is advanced by this many bytes. On error, -1 is returned instead} \\
-    \hline \texttt{exit} & 1 & 60 & error & - & - & - & - & - \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Exits the program with the specified error code} \\
-    \hline \texttt{munmap} & 91 & 11 & addr & length & - & - & - & - \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Frees the length bytes at the address addr, must exactly match its corresponding mmap call} \\
-    \hline \texttt{mremap} & ? & ? & ? & ? & - & - & - & - \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{???} \\
-    \hline \texttt{mmap} & 90 & 9 & addr & length & prot & flags & fd & offset \\
-    \hline \multicolumn{9}{|p{0.97\linewidth}|}{Allocates length (must be a multiple of the page size [4096]) bytes, if addr is NULL (0) then any location is chosen else it will attempt to allocate at addr; prot is the protection flags for the memory, it is an bitwise OR of READ (1), WRITE (2), EXECUTE (4). Flags contains the mapping flags which is a bitwise OR of each flag such as MAP\_PRIVATE (0x2, changes are private to the calling process and are not written back) and MAP\_ANONYMOUS (0x20, allocates from main memory so not backed by a file as fd is ignored), fd can be set to -1 for anonymous mappings and offset is the offset from the start of the file (must be a multiple of the page size). eax/rax contains the ptr to the memory location allocated or an error between -4096 and -1. If a fd is given, the file is added to the programs virtual address space without being loaded into main memory (similar to swap memory). Additionally huge pages can be allocated with certain mappings and caution should be used when using this to access a file since race conditions can occur between processes if the file is not locked and the changes are not immediately written so use msync or fsync} \\
+    EBP & R9 & Arg6 \\
+    EAX & RAX & Syscall number (different in 32-bit and 64-bit programs) and the return value \\
     \hline
   \end{tabular}
 \end{table}
 
-A fd (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with, and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively, any negative fd is invalid so to specify no file, -1 is usually used.
+\newcommand{\sysd}[1]{\hline \multicolumn{10}{|p{0.97\linewidth}|}{#1} \\}
+\newcommand{\sysxxxxxx}[6]{\sysxxxxx{#1}{#2}{#3}{#4}{#5} \\ 6: #6}
+\newcommand{\sysxxxxx}[5]{\sysxxxx{#1}{#2}{#3}{#4} \\ 5: #5}
+\newcommand{\sysxxxx}[4]{\sysxxx{#1}{#2}{#3} \\ 4: #4}
+\newcommand{\sysxxx}[3]{\sysxx{#1}{#2} \\ 3: #3}
+\newcommand{\sysxx}[2]{\sysx{#1} \\ 2: #2}
+\newcommand{\sysx}[1]{1: #1}
+\newcommand{\sys}{}
+
+\newcommand{\sysentry}[6]{
+  \begin{tabular}[t]{>{\centering\arraybackslash}p{0.8\linewidth}|>{\centering\arraybackslash}p{0.2\linewidth}}
+    \begin{tabular}[t]{p{\linewidth}}
+      \begin{tabular}[t]{*{3}{>{\centering\arraybackslash}p{0.249\linewidth}|}>{\centering\arraybackslash}p{0.249\linewidth}}
+        \texttt{#1} & \texttt{#2} & \texttt{#3} & \texttt{#4}
+      \end{tabular} \\ \hline
+      \setlength{\tabcolsep}{6pt}
+      \begin{tabular}[t]{p{0.97\linewidth}}
+        #5
+      \end{tabular}
+      \setlength{\tabcolsep}{0pt}
+    \end{tabular} &
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}[t]{p{\dimexpr\linewidth-12pt\relax}}
+      #6
+    \end{tabular}
+    \setlength{\tabcolsep}{0pt}
+  \end{tabular} \\ \hline
+}
+
+  % TODO: Read, open, close
+
+% WARNING: https://www.man7.org/linux/man-pages/man2/syscalls.2.html
+% WARNING: https://github.com/torvalds/linux/tree/master/arch/x86/entry/syscalls
+\setlength{\tabcolsep}{0pt}
+\begin{longtable}{|p{0.975\linewidth}|}
+  \hline
+  \begin{tabular}[t]{>{\centering\arraybackslash}p{0.8\linewidth}|>{\centering\arraybackslash}p{0.2\linewidth}}
+    \begin{tabular}[t]{*{3}{>{\centering\arraybackslash}p{0.249\linewidth}|}>{\centering\arraybackslash}p{0.249\linewidth}}
+      \textbf{Name} & \textbf{Return} & \textbf{EAX} & \textbf{RAX}
+    \end{tabular} &
+    \begin{tabular}[t]{>{\centering\arraybackslash}p{\linewidth}}
+      \textbf{Arguments}
+    \end{tabular}
+  \end{tabular} \\ \hline
+  \sysentry{read}{???}{3}{0}{Attemps to read count bytes from the current position of the file into the buffer pointed to by ptr, the accumulator stores the true number of bytes read (if EOF less bytes would be read) and the position in the file is advanced by this many bytes. On error, -1 is returned instead}{\sysxxx{fd}{ptr*}{count}}
+  \sysentry{write}{???}{4}{1}{Writes the buffer (count bytes pointed to by ptr) to the file}{\sysxxx{fd}{ptr*}{count}}
+  \sysentry{open}{fd|error}{5}{2}{Opens the file located at pathname using the given flags, on success returns the file descriptor (non-negative integer), on failure returns -1. The mode argument is for the permissions of the created file when O\_CREAT is given as a flag and is otherwise ignored}{\sysxxx{pathname*}{flags}{mode}}
+  \sysentry{close}{status}{6}{3}{Closes the file descriptor, returns 0 on success and -1 on failure}{\sysx{fd}}
+  \sysentry{fstat}{status}{108}{5}{Writes information about the file descriptor into the \texttt{struct stat} pointed to by statbuf, returns 0 on success and -1 on failure}{\sysxx{fd}{statbuf*}}
+  \sysentry{exit}{???}{1}{60}{Exits the program with the specified error code}{\sysx{error}}
+  \sysentry{munmap}{???}{91}{11}{Frees the length bytes at the address addr, must exactly match its corresponding mmap call}{\sysxx{addr}{length}}
+  \sysentry{mremap}{?}{?}{?}{???}{\sys}
+  \sysentry{mmap}{???}{90}{9}{Allocates length (must be a multiple of the page size [4096]) bytes, if addr is NULL (0) then any location is chosen else it will attempt to allocate at addr; prot is the protection flags for the memory, it is an bitwise OR of READ (1), WRITE (2), EXECUTE (4). Flags contains the mapping flags which is a bitwise OR of each flag such as MAP\_PRIVATE (0x2, changes are private to the calling process and are not written back) and MAP\_ANONYMOUS (0x20, allocates from main memory so not backed by a file as fd is ignored), fd can be set to -1 for anonymous mappings and offset is the offset from the start of the file (must be a multiple of the page size). eax/rax contains the ptr to the memory location allocated or an error between -4096 and -1. If a fd is given, the file is added to the programs virtual address space without being loaded into main memory (similar to swap memory). Additionally huge pages can be allocated with certain mappings and caution should be used when using this to access a file since race conditions can occur between processes if the file is not locked and the changes are not immediately written so use msync or fsync}{\sysxxxxxx{addr}{length}{prot}{flags}{fd}{offset}}
+\end{longtable}
+\setlength{\tabcolsep}{6pt}
+
+A fd (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with (lowest unused integer), and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively, any negative fd is invalid so to specify no file, -1 is usually used.
 
 \section{Appendix}
 All of the code used/written has been appended below, it includes programs that can run on Linux or baremetal
@@ -411,10 +480,15 @@ This program writes "Hello World" to stdout then exits without an error.
 32-bit code:
 \lstinputlisting{../linux_syscalls/32.asm}
 
-\subsection{Difference (linux)}
+\subsection{Difference (Linux)}
 This program reads two inputs from stdin and writes their difference to stdout
 
 \lstinputlisting{../subtraction/64.asm}
+
+\subsection{Cat (Linux)}
+This program performs the cat command (it takes in one argument which is a filename and prints its contents). It uses the second arg (the first being the path) as the filename for the open syscall, it then calls the fstat syscall on the returned file descriptor. It gets the size of the file from fstat and allocates the file to memory (the size allocated is the next multiple of page size of the file size). It then writes the memory to stdout then unallocates the memory, closes the file and exits. It also writes to stderr and exits on critical errors (ones that would cause undefined behaviour) but ignores non-critical errors
+
+\lstinputlisting{../cat/cat.asm}
 
 \section{Index}
 
