@@ -1,10 +1,10 @@
 # Fdb version 4
-["pdflatex"] 1754406250.63154 "main.tex" "main.pdf" "main" 1754406251.17762 0
+["pdflatex"] 1754583422.10079 "main.tex" "main.pdf" "main" 1754583422.58365 0
   "../cat/cat.asm" 1754406250.05027 2776 9edb9de70bc1a8924e2535980616aba6 ""
   "../linux_syscalls/32.asm" 1751490958.34865 242 3c8735d4dd95ebf5121f3a726ad9d3ef ""
   "../linux_syscalls/64.asm" 1751490967.19568 634 b445a99ce4b5ac4f0f211ea78dfe8ffd ""
   "../run32.sh" 1751385153.5386 275 05f70daeb59a7e532689120c7d6cb928 ""
-  "../run64.sh" 1754221012.32205 480 580b8db01813ad466d535f1e5bfce4a3 ""
+  "../run64.sh" 1754583421.7878 1122 f5d2e6ecb200a41d80354ad4c6925ac1 ""
   "../subtraction/64.asm" 1754226300.64366 2107 87ef175dd24df0cf3e50ffe887f4953c ""
   "/home/william/.texlive/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk" 1751467648.08485 11524 ea3c81adaa03ba46853deb49926900fc ""
   "/home/william/.texlive/texmf-var/fonts/pk/ljfour/jknappen/ec/tctt0800.600pk" 1751467647.75385 7392 9ed22e61202951feebdbce8aaec96ee0 ""
@@ -65,8 +65,8 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1750090558 30070 2c390b00126b1036e8876b6c3ea4d747 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1750090558 2008250 9f76eb4fcfef3268dd6f629e17ecbefd ""
   "listings-rust.sty" 1750090585.01624 12271 441435634f54a6459e4e2a6911352eff ""
-  "main.aux" 1754406251.10785 4903 af2159ca6b0a98b4120cfb40eee0f733 "pdflatex"
-  "main.tex" 1754405849.12164 28753 343faea88f3cb27bea7f0447cd2aecb8 ""
+  "main.aux" 1754583422.5448 4903 f472960f461b412b1a1c567098531eb0 "pdflatex"
+  "main.tex" 1754583405.96773 28746 fa977f2f00a3e56531083ca4754e99b9 ""
   (generated)
   "main.aux"
   "main.log"

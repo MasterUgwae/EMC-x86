@@ -32,13 +32,9 @@
   showspaces=false,
   showstringspaces=false,
   showtabs=false,
-  tabsize=2}
-\lstset{style=mystyle}
-
-\newcommand{\subsubsubsection}[1]{%
-    \paragraph{#1} % Use paragraph for the subsubsubsection
-    \mbox{} % Add a line break
+  tabsize=2
 }
+\lstset{style=mystyle}
 
 \title{x86 Assembly}
 \author{William Bland}
@@ -248,6 +244,8 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
   \insname{3}{TEST}{Logical Compare}{Performs a bitwise logical AND on OP1 and OP2, sets the relevant flags and discards the result}
     \insopxx{r|m}{r} \insmid
     \insopxx{r|m}{i'64} \inslinea \insend
+  \insname{3}{Jcc}{Jump If Condition Is Met}{Jumps if the condition is met}
+    \insopx{i'64} \inslinea \inslineb \insend
 
   \institle{Functions}
 
