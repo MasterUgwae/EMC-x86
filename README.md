@@ -52,7 +52,11 @@ Machine code
 <!---->
 <!--   </summary> -->
  
-<object data="https://github.com/TheBlandit/EMC-x86/blob/main/latex/main.pdf" type="application/pdf" width="100%">
-</object>
+<!-- <object data="https://github.com/TheBlandit/EMC-x86/blob/main/latex/main.pdf" type="application/pdf" width="100%"> -->
+<!-- </object> -->
+
+<embed src="../latex/main.pdf" type="application/pdf" width="100%" height=800>
+<embed src="./latex/main.pdf" type="application/pdf" width="100%" height=800>
+<embed src="https://github.com/TheBlandit/EMC-x86/blob/main/latex/main.pdf" type="application/pdf" width="100%" height=800>
  
  <!-- </details> -->
