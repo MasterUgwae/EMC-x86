@@ -45,3 +45,13 @@ Boolean operations / usage
 Segment registers
 Machine code
 
+<details>
+  <summary> 
+
+  ## 👉 Click here to view the document 👈
+
+  </summary>
+ 
+  <iframe src="./latex/main.pdf" width="600" height="500"></iframe>
+ 
+ </details>
