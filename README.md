@@ -44,19 +44,3 @@ AT&T vs intel
 Boolean operations / usage
 Segment registers
 Machine code
-
-<!-- <details> -->
-<!--   <summary> -->
-<!---->
-<!--   ## Click here to view the document -->
-<!---->
-<!--   </summary> -->
- 
-<!-- <object data="https://github.com/TheBlandit/EMC-x86/blob/main/latex/main.pdf" type="application/pdf" width="100%"> -->
-<!-- </object> -->
-
-<embed src="../latex/main.pdf" type="application/pdf" width="100%" height=800>
-<embed src="./latex/main.pdf" type="application/pdf" width="100%" height=800>
-<embed src="https://github.com/TheBlandit/EMC-x86/blob/main/latex/main.pdf" type="application/pdf" width="100%" height=800>
- 
- <!-- </details> -->
