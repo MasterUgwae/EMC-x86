@@ -45,13 +45,13 @@ Boolean operations / usage
 Segment registers
 Machine code
 
-<details>
-  <summary>
-
-  ## Click here to view the document
-
-  </summary>
+<!-- <details> -->
+<!--   <summary> -->
+<!---->
+<!--   ## Click here to view the document -->
+<!---->
+<!--   </summary> -->
  
-  <embed src="/latex/main.pdf" type="application/pdf">
+<embed src="/latex/main.pdf" type="application/pdf">
  
- </details>
+ <!-- </details> -->
