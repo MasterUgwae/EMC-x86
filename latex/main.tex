@@ -1,4 +1,5 @@
 \documentclass{article}
+
 \usepackage{graphicx} % Required for inserting images
 \usepackage{url}
 \usepackage{listings}
@@ -8,14 +9,15 @@
 \usepackage{multirow}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{tikz} % For FSM https://www.madebyevan.com/fsm/
 \usepackage[a4paper, left=1.45cm, right=1.45cm, top=2cm, bottom=2cm]{geometry}
 \usepackage{array}
- 
+
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
- 
+
 \lstdefinestyle{mystyle}{
   backgroundcolor=\color{backcolour},
   commentstyle=\color{codegreen},
@@ -112,22 +114,24 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
     RAX & EAX & AX & AH & AL & Accumulator \\
     RBX & EBX & BX & BH & BL & Base \\
     RCX & ECX & CX & CH & CL & Counter \\
-    RDX & EDX & DX & DH & DL & Data (often extends the A register) \\
+    RDX & EDX & DX & DH & DL & Data (often extends the accumulator) \\
     RSI & ESI & SI & - & SIL & Source index for string operations \\
     RDI & EDI & DI & - & DIL & Destination index for string operations \\
     RSP & ESP & SP & - & SPL & Stack pointer \\
     RBP & EBP & BP & - & BPL & Base pointer (for stack frames) \\
-    R8 & R8D & R8W & - & R8B & General purpose register (long mode) \\
-    R9 & R9D & R9W & - & R9B & General purpose register (long mode) \\
-    R10 & R10D & R10W & - & R10B & General purpose register (long mode) \\
-    R11 & R11D & R11W & - & R11B & General purpose register (long mode) \\
-    R12 & R12D & R12W & - & R12B & General purpose register (long mode) \\
-    R13 & R13D & R13W & - & R13B & General purpose register (long mode) \\
-    R14 & R14D & R14W & - & R14B & General purpose register (long mode) \\
-    R15 & R15D & R15W & - & R15B & General purpose register (long mode) \\
+    R8 & R8D & R8W & - & R8B & General purpose register \\
+    R9 & R9D & R9W & - & R9B & General purpose register \\
+    R10 & R10D & R10W & - & R10B & General purpose register \\
+    R11 & R11D & R11W & - & R11B & General purpose register \\
+    R12 & R12D & R12W & - & R12B & General purpose register \\
+    R13 & R13D & R13W & - & R13B & General purpose register \\
+    R14 & R14D & R14W & - & R14B & General purpose register \\
+    R15 & R15D & R15W & - & R15B & General purpose register \\
     \hline
   \end{tabular}
 \end{table}
+
+Registers 8-15, and the SIL, DIL, SPL and BPL are only available in 64-bit programs since they were added in the 64-bit extentions
 
 % \begin{table}[H] % TODO: hidden register
 %   \centering
@@ -142,15 +146,15 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 \begin{table}[H]
   \centering
   \caption{Segment registers (All are 16-bit)}
-  \begin{tabular}{r|l}
-    \textbf{Register} & \textbf{Description} \\
+  \begin{tabular}{|r|l|}
+    \hline \textbf{Register} & \textbf{Description} \\
     \hline
     CS & Code segment \\
     DS & Data segment \\
     SS & Stack segment \\
     ES & Extra segment (for string operations) \\
     FS & General purpose segment register (Intel 80386) \\
-    GS & General purpose segment register (Intel 80386)
+    GS & General purpose segment register (Intel 80386) \\ \hline
   \end{tabular}
 \end{table}
 
@@ -166,28 +170,170 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 
 \subsection{Cache}
 
-\subsection{Memory locations}
+Cache is a relatively small amount of memory placed within the processor. It is extremely fast SRAM (as opposed to the slower main memory DRAM). There are typically several layers of cache, with each layer getting larger in capacity and slower to access:
+
+\begin{enumerate}
+  \item L1d: \\
+    Extremely fast data cache
+  \item L1i: \\
+    Extremely fast instruction cache
+  \item L2: \\
+    Very fast cache
+  \item L3: \\
+    Fast cache (shared between cores)
+\end{enumerate}
+
+\subsubsection{Cache coherency protocol}
+Cache coherency protocols ensure the caches on difference processors [cores] store the most recent, correct copy of data.
+x86 uses MSI-based protocols, such as MESI, MOESI and MESIF (with MESI being used in older processors, and the latter two being used in newer AMD and Intel processors respectively);
+MSI-based protocols are a type of write-invalidate snooping protocol, this means that a write on one cache invalidates all other cache.
+Each cache line is stored with a state, when a cacheline is accessed (read miss or write), its state is updated and it sends a message to all other processors on a bus.
+The cache controllers snoops the bus, if a message involves a cacheline in its cache, its state is updated to reflect the message.
+% TODO: write-back memory
+
+% https://web.archive.org/web/20170619232736/http://developer.amd.com/wordpress/media/2012/10/24593_APM_v21.pdf#page=217
+
+The accesses to cache which affect state are:
+\begin{enumerate}
+  \item PR - current Processor Reads (cache miss)
+  \item PW - current Processor Writes
+  \item BR - Bus Read (cache miss, another processor reads)
+  \item BW - Bus Write (another processor writes)
+\end{enumerate}
+
+The state transitions are defined by a finite state machine, the invalid state is considered as a cache miss and uncached items can be considered to be in the invalid state.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|p{0.5\linewidth}|}
+    \hline \textbf{State} & \textbf{Data} & \textbf{Responds to BR} & \textbf{Description} \\ \hline
+    Modified & Dirty & Yes & Only copy of the data \\
+    Exclusive & Clean & Yes & Only copy of the data \\
+    Shared & Clean* & No** & Multiple copies of the data \\
+    Invalid & Invalid & No & The cache line does not hold a valid copy of the data \\
+    Owned & Dirty & Yes & Multiple copies of the data (all others are shared) \\
+    Forward & Clean & Yes & Multiple copies of the data (all others are shared) \\ \hline % https://en.wikipedia.org/wiki/MESIF_protocol
+  \end{tabular}
+\end{table}
+
+* Dirty if another cache is in the Owned state.
+
+** Will never respond if another cache is Owned or Forward, otherwise depending on implementation either a single Shared cache will repond, they all respond or none respond (most likely).
+
+Owned and Modified states write to main memory (or next-level cache) when switching to a clean state or when evicted from cache.
+Furthermore, states with the only copy of cache (Modified and Exclusive) do not have to send a bus message when writing to its cache.
+The following finite state machines represent the transitions between the states of their respective protocols (MSI has been included since it is the foundation of the protocols but is not used in x86).
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|c|c|c|c|c|}
+    \cline{2-5} \multicolumn{1}{c}{} & \multicolumn{4}{|c|}{\textbf{Access}} \\ \hline
+    \textbf{State} & \textbf{PR} & \textbf{PW} & \textbf{BR} & \textbf{BW} \\ \hline
+    \multicolumn{5}{|c|}{MSI transitions} \\ \hline
+    M & M & M & S & I \\
+    S & S & M & S & I \\
+    I & S & M & I & I \\ \hline
+    \multicolumn{5}{|c|}{MESI transitions} \\ \hline
+    M & M & M & S & I \\
+    E & E & M & S & I \\
+    S & S & M & S & I \\
+    I & * & M & I & I \\ \hline
+    \multicolumn{5}{|c|}{MOESI transitions} \\ \hline
+    M & M & M & O & I \\
+    O & O & M & O & I \\
+    E & E & M & S & I \\
+    S & S & M & S & I \\
+    I & * & M & I & I \\ \hline
+    \multicolumn{5}{|c|}{MESIF transitions} \\ \hline
+    M & M & M & S & I \\
+    E & E & M & S & I \\
+    S & S & M & S & I \\
+    I & ** & M & I & I \\
+    F & F & M & S & I \\ \hline
+  \end{tabular}
+\end{table}
+
+* Transitions to E if exclusive or S if shared.
+
+** Transitions to E if exclusive or F if shared.
+
+\subsubsection{Cache mappings}
+
+Cache mapping describes how the physical address is used to map to the data, there are three types:
+
+\begin{enumerate}
+  \item Direct: \\
+    Each physical address is split into three parts: tag, block and word.
+    The block is used to identify a specific cacheline, each cacheline stores a tag and the tags are compared, if equal its considered a cache hit else it is a cache miss.
+    On a hit, the word is used as an offset into the cacheline to retrieve the data.
+    On a miss, the new data is fetched from main memory and replaces the cacheline.
+  \item Associative: \\
+    Each physical address is split into two parts: tag and word.
+    Every cacheline is checked in parrallel for if the tags are equal.
+    On a hit, the word is used as an offset into the cacheline to retrieve the data.
+    On a miss, the new data is fetched from main memory and replaces a cacheline usually identified by a LRU algorithm (Least Recently Used).
+  \item N-Way Set-Associative: \\
+    Each physical address is split into three parts: tag, block and word.
+    The block is used to identify a specific set (each set stores N cachelines).
+    Each cacheline in the set is checked in parallel for if the tags are equal.
+    On a hit, the word is used as an offset into the cacheline to retrieve the data.
+    On a miss, the new data is fetched from main memory and replaces a cacheline within the set usually identified by a LRU algorithm.
+\end{enumerate}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|c|p{0.25\linewidth}|p{0.25\linewidth}|}
+    \hline \textbf{Mapping} & \textbf{Pros} & \textbf{Cons} \\ \hline
+    Direct & Fast (spacial locality) & Cache lines often get evicted if they have the same block \\
+    Associative & Cache lines only get evicted if not used (temporal locality) & Slow \\
+    Set-Associative & Faster than Associative with similar positives & Slower than Direct and Conflict misses can occur \\ \hline
+  \end{tabular}
+\end{table}
+
+Most x86 processors use N-Way Set-Accociative caches, with the more performant ones using larger set sizes.
+
+\subsubsection{Cache misses}
+
+A cache miss occurs when valid data does not exist in the processor's cache. The first three types of cache miss are commonly known as the three C's.
+
+\begin{enumerate}
+  \item Compulsory (cold) miss: \\
+    Occurs when accessing memory for the first time (so was never cached)
+  \item Capacity miss: \\
+    Occurs when cache is full and a cacheline was evicted but later used
+  \item Conflict miss: \\
+    Occurs when multiple cache lines are mapped to the same location in cache, causing one to get evicted so if read again later it is a miss
+  \item Coherence miss: \\
+    The (write-invalidate) cache coherency protocol (eg MESI) invalidated the cacheline because it was written in another processor
+\end{enumerate}
+
+% TODO: not here, idk where: priviledge levels: checking for instructions, managing (kernel)
+% 3: 13.2
+% if evicted is dirty, it is written back to main memory
+% lines are caches on write miss but writes are only written to main memory on eviction (defer writes)
+% https://stackoverflow.com/questions/20155304/does-linux-use-x86-cpus-pcid-feature-for-tlb-if-not-why
+\subsection{Paging}
+% TODO: swap, page faults, CR3 + layout of page directory, TLB + cache misses, Flag to enable prot, page walk
+% TLB misses: Compulsory, capacity and conflict
+
+\subsection{Segmentation}
+% TODO: types of segment, TTS, and segment registers
+
+\subsection{Memory addressing}
 % TODO: [es:di] and [eax + ebx * 4 + 2]
 
-\subsection{Memory paging, protection and segmentation}
-% TODO: swap, page faults
-
-
 \section{Instructions}
-The format of the instruction is \texttt{instruction op1, op2}
+The format of the instruction is \texttt{instruction op1, op2, op3} eg \texttt{'MOV RAX, 10'}.
 Each instruction has different limitations to what type an operand can be, these types are
 
 \begin{table}[H]
   \centering
-  \caption{Operand types}
   \begin{tabular}{|c|c|l|}
-    \hline \textbf{Symbol} & \textbf{Name} & \textbf{Description} \\
-    \hline
+    \hline \textbf{Symbol} & \textbf{Name} & \textbf{Description} \\ \hline
     r & General purpose register & A register such as eax \\
     m & Memory address & A memory address such as \texttt{[eax + 4*ebx + 4]} \\
     i & Immediate & A constant value such as 80h or a pointer to a label or data section \\
-    s & Segment Register & A segment register such as es \\
-    \hline
+    s & Segment Register & A segment register such as es \\ \hline
   \end{tabular}
 \end{table}
 
@@ -345,7 +491,6 @@ x86 processors have several different operating modes that they can run in, thes
 
 \begin{table}[H]
   \centering
-  %\caption{}
   \begin{tabular}{|r|p{0.65\linewidth}|}
     \hline \textbf{Name} & \textbf{Description} \\ \hline
     Real mode & Also called real address mode, all addresses always correspond to physical (real) memory addresses. Memory addresses are 20 bit allowing for 1MiB of memory, they are referenced by the value in a segment register left shifted by 4 then added to an offset for example [es:di]. There is no memory protection in real mode, and all x86 CPU's start in real mode when reset for compatibility \\ \hline
