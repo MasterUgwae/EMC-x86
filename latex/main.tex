@@ -346,9 +346,31 @@ A cache miss occurs when valid data does not exist in the processor's cache. The
 % if evicted is dirty, it is written back to main memory
 % lines are caches on write miss but writes are only written to main memory on eviction (defer writes)
 % https://stackoverflow.com/questions/20155304/does-linux-use-x86-cpus-pcid-feature-for-tlb-if-not-why
+\subsection{Segmentation}
+% TODO: types of segment, TTS, and segment registers
+
+Segmentation is a method of memory management that seperates parts of a processes address space into different segments (such as code and data), it uses the 6 segment registers to keep track of the segments.
+It is used to convert a logical address (which consists of a segment register and an offset) into a linear address.
+% Every time a process accesses a memory location, it uses a segment.; make this better
+Segmentation has different behaviours depending on what operating mode the processor is in, however unlike paging it is always enabled.
+
+\subsubsection{Real Mode}
+
+The value in the segment register is left shifted by 4 (multiplied by 16) then added to the offset to produce a 20-bit physical address allowing up to 1MiB of memory instead of the 64KiB if segmentation was not used.
+
+\subsubsection{Protected Mode}
+
+% Add flags to selector
+The value in the segment register is a segment selector, it is used as an index into the LDT/GDT to select a segment descriptor.
+Each segment descriptor contains a base address, limit and flags.
+The base address is a linear address and points to the base of the segment, the limit is the size of the segment and the flags set the segments properties such as permissions, 32 or 16 bit code and granularity of the limit.
+
+Add flat model, and other models, add gdt/ldt and their registers and add flags in the segment registers
+
 \subsection{Paging}
 
 Paging is a method of memory management that seperates a programs address space (linear address) from the physical address space.
+It occurs after segmentation but unlike segmentation it does not need to be enabled, if it is disabled linear addresses are the same as physical addresses.
 The OS splits up the physical address space into 4KiB pages, each process has a paging structure which the OS manages, it consists of many layers;
 each layer consists of the entries for either the physical address of the next layer or page and flags.
 When a process accesses memory, the processor hardware converts the linear address into its corresponding physical address using the paging structure (by traversing the layers) and then uses it to access memory, this is called a hardware-assisted page walk.
@@ -444,9 +466,6 @@ paging structure:
 5.8-5.11 - ???
 
 5.12 - virtual memory
-
-\subsection{Segmentation}
-% TODO: types of segment, TTS, and segment registers
 
 \subsection{Memory addressing}
 % TODO: [es:di] and [eax + ebx * 4 + 2]
@@ -725,9 +744,9 @@ These bash scripts were used to run the code.
 This program writes "Hello World" to stdout then exits without an error.
 
 \noindent \newline 64-bit code:
-\lstinputlisting{../linux_syscalls/64.asm}
+\lstinputlisting{../print/64.asm}
 32-bit code:
-\lstinputlisting{../linux_syscalls/32.asm}
+\lstinputlisting{../print/32.asm}
 
 \subsection{Difference (Linux)}
 This program reads two inputs from stdin and writes their difference to stdout
@@ -738,5 +757,10 @@ This program reads two inputs from stdin and writes their difference to stdout
 This program performs the cat command (it takes in one argument which is a filename and prints its contents). It uses the second arg (the first being the path) as the filename for the open syscall, it then calls the fstat syscall on the returned file descriptor. It gets the size of the file from fstat and allocates the file to memory (the size allocated is the next multiple of page size of the file size). It then writes the memory to stdout then deallocates the memory, closes the file and exits. It also writes to stderr and exits on critical errors (ones that would cause undefined behaviour) but ignores non-critical errors
 
 \lstinputlisting{../cat/cat.asm}
+
+\subsection{Hello world (Baremetal)}
+This program prints "Hello world" to the vga-mode buffer.
+
+\lstinputlisting{../baremetal/main.asm}
 
 \end{document}
