@@ -1,7 +1,7 @@
 BITS 16                     ; Instruct NASM that this is 16 bit (real mode) code
 org 0x7c00                  ; Set the origin to 0x7c00 which is where BIOS loads the bootloader
 
-start:
+_start:
     mov ax, 0xb800          ; Set AX to the video memory segment (0xb800)
     mov es, ax              ; Load ES with the video memory segment
 
