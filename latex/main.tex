@@ -46,9 +46,8 @@
 % TODO: Add PIE (position independent executable)
 % TODO: BIOS, UEFI, Multiboot spec
 % TODO: hidden instructions, appendix H, intels FDIV off by a small amount, 66 jmp (amd makes it 16 bit, intel ignores the 66)
-\title{x86 Architecture}
+\title{\textbf{x86 Architecture}}
 \author{William Bland}
-% \date{April 2025}
 
 \begin{document}
 
@@ -671,9 +670,66 @@ paging structure:
 
 % Bits 11:0 of the paging structure control flags which modify the use of the corresponding page/paging structure.
 % These flags are:
-Layout of a paging structure (M = MAXPHYADDR):
+Layout of a paging structure (M = MAXPHYADDR, * = Pointer to next paging structure or page frame):
 
 \setlength{\tabcolsep}{0pt}
+
+32-bit:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|*{6}{>{\centering\arraybackslash}p{0.099\linewidth}|}}
+    \hline \textbf{Bits} & \textbf{CR3} & \textbf{PDE: 4MB} & \textbf{PDE: PTE} & \textbf{PTE: 4KB} & \textbf{Not Present} \\ \hline
+    31:22 & \multirow{4}*{PD*} & 31:22 Page* & \multirow{4}*{PT*} & \multirow{4}*{Page*} & \multirow{15}*{Ign.} \\ \cline{1-1} \cline{3-3}
+    21:17 & & Rsvd. & & & \\ \cline{1-1} \cline{3-3}
+    16:13 & & 39:22 Page* & & & \\ \cline{1-1} \cline{3-3}
+    12 & & PAT & & & \\ \cline{1-5}
+
+    11 & \multirow{7}*{Ign.} & \multirow{3}*{Ign.} & \multirow{4}*{Ign.} & \multirow{3}*{Ign.} & \\ \cline{1-1}
+    10 & & & & & \\ \cline{1-1}
+    9 & & & & & \\ \cline{1-1} \cline{3-3} \cline{5-5}
+    8 & & G & & G & \\ \cline{1-1} \cline{3-5}
+    7 & & 1 & 0 & PAT & \\ \cline{1-1} \cline{3-5}
+    6 & & D & Ign. & D & \\ \cline{1-1} \cline{3-5}
+    5 & & A & A & A & \\ \cline{1-5}
+    4 & PCD & PCD & PCD & PCD & \\ \cline{1-5}
+    3 & PWT & PWT & PWT & PWT & \\ \cline{1-5}
+    2 & \multirow{3}*{Ign.} & U/S & U/S & U/S & \\ \cline{1-1} \cline{3-5}
+    1 & & R/W & R/W & R/W & \\ \cline{1-1} \cline{3-6}
+    0 & & 1 & 1 & 1 & 0 \\ \hline
+  \end{tabular}
+\end{table}
+
+
+PAE:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|*{7}{>{\centering\arraybackslash}p{0.099\linewidth}|}}
+    \hline \textbf{Bits} & \textbf{CR3} & \textbf{PDPTE} & \textbf{PDE: 2MB} & \textbf{PDE: PTE} & \textbf{PTE: 4KB} & \textbf{Not Present} \\ \hline
+    63 & \multirow{3}*{Ign.} & \multirow{2}*{Rsvd.} & XD & XD & XD & \multirow{15}{*}{Ign.} \\ \cline{1-1} \cline{4-6}
+    62:M & & & Rsvd. & Rsvd. & Rsvd. & \\ \cline{1-1} \cline{3-6}
+    M-1:32 & & \multirow{4}*{PDE*} & \multirow{2}*{Page*} & \multirow{4}*{PT*} & \multirow{4}*{Page*} & \\ \cline{1-2}
+    31:21 & \multirow{10}*{PDPT*} & & & & & \\ \cline{1-1} \cline{4-4}
+    20:13 & & & Rsvd. & & & \\ \cline{1-1} \cline{4-4}
+    12 & & & PAT & & & \\ \cline{1-1} \cline{3-6}
+
+    11 & & \multirow{3}*{Ign.} & \multirow{3}*{Ign.} & \multirow{4}*{Ign.} & \multirow{3}*{Ign.} & \\ \cline{1-1}
+    10 & & & & & & \\ \cline{1-1}
+    9 & & & & & & \\ \cline{1-1} \cline{3-4} \cline{6-6}
+    8 & & \multirow{4}*{Rsvd.} & G & & G & \\ \cline{1-1} \cline{4-6}
+    7 & & & 1 & 0 & PAT & \\ \cline{1-1} \cline{4-6}
+    6 & & & D & Ign. & D & \\ \cline{1-1} \cline{4-6}
+    5 & & & A & A & A & \\ \cline{1-6}
+    4 & \multirow{5}*{Ign.} & PCD & PCD & PCD & PCD & \\ \cline{1-1} \cline{3-6}
+    3 & & PWT & PWT & PWT & PWT & \\ \cline{1-1} \cline{3-6}
+    2 & & \multirow{2}*{Rsvd.} & U/S & U/S & U/S & \\ \cline{1-1} \cline{4-6}
+    1 & & & R/W & R/W & R/W & \\ \cline{1-1} \cline{3-7}
+    0 & & 1 & 1 & 1 & 1 & 0 \\ \hline
+  \end{tabular}
+\end{table}
+
+4/5 Level paging:
 
 \begin{table}[H]
   \centering
@@ -699,7 +755,7 @@ Layout of a paging structure (M = MAXPHYADDR):
     4 & PCD & PCD & PCD & PCD & PCD & PCD & PCD & PCD & \\ \cline{1-9}
     3 & PWT & PWT & PWT & PWT & PWT & PWT & PWT & PWT & \\ \cline{1-9}
     2 & \multirow{3}*{Ign.} & U/S & U/S & U/S & U/S & U/S & U/S & U/S & \\ \cline{1-1} \cline{3-9}
-    1 & & R/S & R/S & R/S & R/S & R/S & R/S & R/S & \\ \cline{1-1} \cline{3-10}
+    1 & & R/W & R/W & R/W & R/W & R/W & R/W & R/W & \\ \cline{1-1} \cline{3-10}
     0 & & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 \\ \hline
   \end{tabular}
 \end{table}
