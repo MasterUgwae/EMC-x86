@@ -1,2 +1,9 @@
 *.bin
 **/target/
+latex/main.aux
+latex/main.fls
+latex/main.log
+latex/main.out
+latex/main.toc
+latex/main.synctex.gz
+latex/main.fdb_latexmk
