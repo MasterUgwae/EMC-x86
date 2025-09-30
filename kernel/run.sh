@@ -30,7 +30,7 @@ elf="${build}/kernel.elf"
 ld -m elf_i386 -T "${location}/ld" --entry=_start "${o32[@]}" -o "$elf" || exit 1
 #ld -m elf_i386 -Ttext=0x1000 --entry=_start "${objects[@]}" -o "$elf" || exit 1
 objcopy -O binary -R .note.gnu.property -R .note.gnu.build-id "$elf" "$output"
-if [[ $(stat -c%s "$output") > 512 ]]; then # Change to whatever the number of sectors * 512 the bootloader is reading
+if [ $(stat -c%s "$output") -gt 1024 ]; then # Change to whatever the number of sectors * 512 the bootloader is reading
     echo "${output} file is too large"
     exit 1
 fi

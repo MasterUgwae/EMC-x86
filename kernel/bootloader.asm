@@ -61,7 +61,7 @@ read_kernel:
     mov es, ax      ; Set ES to 0 (destination segment for read)
 
     mov ah, 0x02    ; BIOS function: read sectors
-    mov al, 1       ; Number of sectors to read (1)
+    mov al, sectors_read ; Number of sectors to read
     mov ch, 0       ; Cylinder 0
     mov cl, 2       ; Sector 2 (1-based indexing)
     mov dh, 0       ; Head 0
@@ -70,7 +70,7 @@ read_kernel:
     int 0x13        ; Call BIOS disk service
 
     jc error        ; If carry flag set, handle error
-    cmp al, 1       ; Check if 1 sector was read
+    cmp al, sectors_read ; Check if all sector were read
     jne error       ; If not, handle error
 
     ; setup gdt
@@ -129,6 +129,7 @@ gdt_location equ 0x2000 ; gdt location
 ;               limit-1  base     base  junk
 gdt_contents db 0x1F, 0, 0, 0x20, 0, 0, 0, 0,     0xFF, 0xFF, 0, 0, 0, 0x9A, 0xCF, 00,     0xFF, 0xFF, 0, 0, 0, 0x92, 0xCF, 0,    0, 0, 0, 0, 0, 0, 0, 0
 gdt_size equ $ - gdt_contents ; gdt location
+sectors_read equ 2
 ; Boot sector padding and signature
 times 510-($-$$) db 0   ; Pad the boot sector to 510 bytes (ensuring the total size is 512 bytes)
 dw 0xAA55               ; Boot sector signature (0xAA55), required for a valid bootable sector

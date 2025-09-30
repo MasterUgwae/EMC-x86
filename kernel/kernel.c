@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "identity.h"
 
 // Prints a new line to the vga text buffer
 void println(char* print);
@@ -12,6 +13,9 @@ void _start() {
         cpuid_str = "Suppports CPUID";
     }
     println(cpuid_str);
+
+    struct struct_page page;
+    paging_create(&page);
 
     while (1) {
         __asm__ volatile("hlt");
