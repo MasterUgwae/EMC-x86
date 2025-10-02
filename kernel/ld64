@@ -1,0 +1,12 @@
+SECTIONS {
+    . = 0x2000;
+    .text : { *(.text) }
+    .data : { *(.data) }
+    .bss : { *(.bss) }
+    .eh_frame : { *(.eh_frame) }
+    .got.plt : { *(.got.plt) }
+    /* Place .note sections immediately after, no high addresses */
+    .note : { *(.note*) }
+    /* Discard unneeded sections */
+    /DISCARD/ : { *(.comment .symtab .strtab .shstrtab) }
+}
