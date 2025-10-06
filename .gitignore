@@ -1,5 +1,6 @@
 *.bin
 **/target/
+kernel/build/
 latex/main.aux
 latex/main.fls
 latex/main.log
