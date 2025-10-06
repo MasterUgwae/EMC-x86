@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "identity.h"
+#include "../include/identity.h"
 
 // Prints a new line to the vga text buffer
 void println(char* print);

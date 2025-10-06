@@ -3,7 +3,7 @@
 // Uses level 4 paging
 
 #include <stdint.h>
-#include "identity.h"
+#include "../include/identity.h"
 
 const uint64_t FLAGS = 0b000000000011; // R/W, P
 const uintptr_t CR3 = 1 << 20;
