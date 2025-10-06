@@ -3,10 +3,10 @@
 // Uses level 4 paging
 
 #include <stdint.h>
+#include "../include/shared_constants.h"
 #include "../include/identity.h"
 
 const uint64_t FLAGS = 0b000000000011; // R/W, P
-const uintptr_t CR3 = 1 << 20;
 
 void create_pde(uint64_t* base) {
     uint64_t* pte_base = base + 512;
@@ -46,7 +46,7 @@ uint64_t* create_plm4e(uint64_t* base) {
 }
 
 void paging_create() {
-    uint64_t* pdpte = create_plm4e((uint64_t*)CR3);
+    uint64_t* pdpte = create_plm4e((uint64_t*)IDENTITY_BASE_ADDRESS);
     uint64_t* pde = create_plm4e(pdpte);
     create_pde(pde);
 }

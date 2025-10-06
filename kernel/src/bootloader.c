@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "../include/identity.h"
+#include "../include/shared_constants.h"
 
 // Prints a new line to the vga text buffer
 void println(char* print);
@@ -17,7 +18,7 @@ void _start() {
 
     paging_create();
 
-    uint32_t cr3 = CR3;
+    uint32_t cr3 = IDENTITY_BASE_ADDRESS;
 
     // __asm__ volatile (
     //     // Enable PAE
@@ -69,7 +70,7 @@ void _start() {
 
 void println(char* print) {
     static uint32_t line = 1;
-    char volatile* vga = (char volatile*)(line * 160 + 0xb8000);
+    char volatile* vga = (char volatile*)(line * 160 + VGA_TEXT_BUFFER);
     while (*print != '\0') {
         *vga = *print;
         print++;

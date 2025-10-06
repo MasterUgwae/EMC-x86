@@ -126,10 +126,6 @@ jump_32:
 
     call 1000h ; _start in C
 
-    ; Write a char to the screen
-    mov eax, 0xb8100
-    mov byte [eax], 65
-
     ; Enable PAE
     mov eax, cr4
     or eax, 0b100000
@@ -151,7 +147,6 @@ jump_32:
     mov cr0, eax
 
     jmp 8h:jump_64
-    jmp halt
 
 BITS 64
 jump_64:

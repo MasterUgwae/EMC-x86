@@ -1,2 +1,3 @@
 bootloader.c
 identity.c
+shared_constants.c
