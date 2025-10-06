@@ -126,8 +126,29 @@ jump_32:
 
     call 1000h ; _start in C
 
+    ; Write a char to the screen
     mov eax, 0xb8100
     mov byte [eax], 65
+
+    ; Enable PAE
+    mov eax, cr4
+    or eax, 0b100000
+    mov cr4, eax
+
+    ; Set CR3
+    mov eax, 1 << 20
+    mov cr3, eax
+
+    ; Set IA32_EFER.LME
+    mov ecx, 0xC0000080
+    rdmsr
+    or eax, 0x100
+    wrmsr
+
+    ; Enable Paging
+    mov eax, cr0
+    or eax, 1 << 31
+    mov cr0, eax
 
     jmp 8h:jump_64
     jmp halt
@@ -142,7 +163,7 @@ jump_64:
     mov gs, ax
     mov rsp, 0x10000
 
-    ; call 2000h ; _start in C
+    call 2000h ; _start in C
     jmp halt
 
 message db 'Hello world', 0 ; The 'Hello World' message followed by a null terminator (0)

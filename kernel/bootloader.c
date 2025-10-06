@@ -19,45 +19,45 @@ void _start() {
 
     uint32_t cr3 = CR3;
 
-    __asm__ volatile (
-        // Enable PAE
-        "mov %%cr4, %%eax\n\t"
-        "or $0b100000, %%eax\n\t"
-        "mov %%eax, %%cr4\n\t"
-        // Put paging base into cr3
-        "mov %0, %%eax\n\t"
-        "mov %%eax, %%cr3\n\t"
-        :
-        : "r" (cr3)
-        : "eax", "memory"
-    );
-
-    println("Loaded CR3");
-
-    __asm__ volatile (
-        // Enable IA32_EFER.LME
-        "mov $0xC0000080, %%ecx\n\t"
-        "rdmsr\n\t"
-        "or $0x100, %%eax\n\t"
-        "wrmsr\n\t"
-        :
-        :
-        : "eax", "ecx", "edx"
-    );
-
-    println("Enabled LM");
-
-    __asm__ volatile (
-        // Enable Compatability mode (enables paging)
-        "mov %%cr0, %%eax\n\t"
-        "or $0x8000, %%eax\n\t"
-        "mov %%eax, %%cr0\n\t"
-        :
-        :
-        : "eax"
-    );
-
-    println("Enabled Compatibility");
+    // __asm__ volatile (
+    //     // Enable PAE
+    //     "mov %%cr4, %%eax\n\t"
+    //     "or $0b100000, %%eax\n\t"
+    //     "mov %%eax, %%cr4\n\t"
+    //     // Put paging base into cr3
+    //     "mov %0, %%eax\n\t"
+    //     "mov %%eax, %%cr3\n\t"
+    //     :
+    //     : "r" (cr3)
+    //     : "eax", "memory"
+    // );
+    //
+    // println("Loaded CR3");
+    //
+    // __asm__ volatile (
+    //     // Enable IA32_EFER.LME
+    //     "mov $0xC0000080, %%ecx\n\t"
+    //     "rdmsr\n\t"
+    //     "or $0x100, %%eax\n\t"
+    //     "wrmsr\n\t"
+    //     :
+    //     :
+    //     : "eax", "ecx", "edx"
+    // );
+    //
+    // println("Enabled LM");
+    //
+    // __asm__ volatile (
+    //     // Enable Compatability mode (enables paging)
+    //     "mov %%cr0, %%eax\n\t"
+    //     "or $0x80000000, %%eax\n\t"
+    //     "mov %%eax, %%cr0\n\t"
+    //     :
+    //     :
+    //     : "eax"
+    // );
+    //
+    // println("Enabled Compatibility");
 
     // Clear D/B for segment descriptors and set L
     uint64_t* segments = (uint64_t*)0x0808;
