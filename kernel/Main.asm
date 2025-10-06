@@ -10,6 +10,19 @@ Main:
                                       ; Do a far jump to fix this issue, and reload CS to 0x0000.
 
 .FlushCS:   
+    xor ax, ax      ; Clear AX
+    mov ds, ax      ; Set DS to 0 (flat real-mode addressing)
+    mov es, ax      ; Set ES to 0 (destination segment for read)
+
+    mov ah, 0x02    ; BIOS function: read sectors
+    mov al, 16 ; Number of sectors to read
+    mov ch, 0       ; Cylinder 0
+    mov cl, 2       ; Sector 2 (1-based indexing)
+    mov dh, 0       ; Head 0
+    mov dl, 0x80    ; Boot disk (0x80 = first hard disk, 0x00 = floppy)
+    mov bx, 0x1000  ; Destination address ES:BX = 0x0:0x1000
+    int 0x13        ; Call BIOS disk service
+
     xor ax, ax
 
     ; Set up segment registers.
@@ -30,15 +43,6 @@ Main:
     mov edi, FREE_SPACE
     ; Switch to Long Mode.
     jmp SwitchToLongMode
-
-
-BITS 64
-.Long:
-    hlt
-    jmp .Long
-
-
-BITS 16
 
 .NoLongMode:
     mov si, NoLongMode
