@@ -139,13 +139,16 @@ Processors operate on digital signals which can either be high or low and can be
 Lastly, all memory addresses point to a unique byte in memory therefore a multibyte integer (eg 64-bit) could be stored in two different orderings (its endianness). In Little-Endian (LE) ordering the least significant byte occupies the smaller address space, while in Big-Endian (BE) ordering the most significant byte occupies the smaller address space. x86 and most other computers uses LE while data transmitted over networks uses BE.
 
 \subsection{Registers}
-Resisters store small values in small regions of memory directly accessible to the current CPU thread.
+Resisters store a small amount of memory directly accessible to instructions.
 % https://wiki.osdev.org/CPU_Registers_x86-64
-The registers on the same line overlap in memory (eg the 32-bit register is located in the lower half of the 64-bit register)
+
+\subsubsection{General Purpose Registers}
+General purpose registers are the most commonly accessed registers, they are used for a variety of uses such as arithmetic, logic and memory addressing.
+Most instructions require a register to be specified while some may implicity use a specific register (such as stack operations modifying the Stack pointer register).
+The registers on the same line in the table overlap in memory (eg the 32-bit register is located in the lower half of the 64-bit register)
 
 \begin{table}[H]
   \centering
-  \caption{General purpose registers}
   \begin{tabular}{|c|c|c|c|c|l|}
     \hline \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Higher 8-bit} & \textbf{Lower 8-bit} & \textbf{Description} \\
     \hline
@@ -170,18 +173,12 @@ The registers on the same line overlap in memory (eg the 32-bit register is loca
 \end{table}
 
 Registers 8-15, and the SIL, DIL, SPL and BPL are only available in 64-bit programs since they were added in the 64-bit extensions
-There are also segment registers, these are used in memory segmentation \myref{segmentation}.
-The segment registers (always 16-bit) are:
 
-% \begin{table}[H] % TODO: hidden register
-%   \centering
-%   \caption{Pointer registers}
-%   \begin{tabular}{c|c|c|l}
-%     \textbf{64-bit} & \textbf{32-bit} & \textbf{16-bit} & \textbf{Description} \\
-%     \hline
-%     RIP & EIP & IP & The pointer to the current instruction
-%   \end{tabular}
-% \end{table}
+% TODO: Add Instruction Pointer
+
+\subsubsection{Segment Registers}
+Segment registers are 16-bit registers which are used for memory segmentation \myref{segmentation}.
+The segment registers are:
 
 \begin{table}[H]
   \centering
@@ -196,10 +193,9 @@ The segment registers (always 16-bit) are:
   \end{tabular}
 \end{table}
 
-% TODO: EFLAGS
-% https://wiki.osdev.org/CPU_Registers_x86
+\subsubsection{Control Registers}
 
-There are also several control registers, they contain flags that control the operation of the CPU.
+Control registers contain flags that control the operation of the CPU (such as enabling specific features).
 Control registers not listed in the table below such as CR1 and bits not listed are reserved and should be 0 (writing to a reserved register results in a \#UD exception, setting a reserved bit in CR0[0:31] is ignored, setting a reserved bit in CR0[32:63], CR4 or CR3[MAXPHYADDR:63] causes a \#GP).
 When protection is enabled, control registers can only be written to at CPL 0, however CR2 is writable by software.
 On a 64-bit processor, writing to a control register outside of 64-bit mode sets the upper 32 bits to 0, however when transitioning out of IA-32e mode, the registers retain their upper 32 bits.
@@ -218,7 +214,7 @@ Below is a list of the control registers and their flags:
   5 & NE & Numeric error \\
   16 & WP & Write protect \\
   18 & AM & Alignment mask \\
-  29 & NW & Non-write through \\
+  29 & NW & Not-write through \\
   30 & CD & Cache disable \\
   31 & PG & Paging \\
   % \hline \multicolumn{3}{|c|}{\textbf{CR1}} \\ \hline
@@ -263,10 +259,29 @@ Below is a list of the control registers and their flags:
   0:3 & TPL & Task Priority Level \\ \hline
 \end{longtable}
 
-% TODO:
-% There are also Model Specific Registers (MSR)
+% TODO: EFLAGS
+% https://wiki.osdev.org/CPU_Registers_x86
+% https://wiki.osdev.org/CPU_Registers_x86-64
 
-\subsection{Flags}
+% TODO: Extended control, debug, test, protected mode (gdtr, ldtr, idtr)
+
+\subsubsection{Model Specific Registers}
+
+Model Specific Registers (MSRs) are registers which may not be present on all processors, some are added for testing features and may not be present in future processors, others may provide unique functionality for the processor (eg if the processor were made to be used in a non-standard environment).
+MSRs are 64-bits in size and identified with a unique 32-bit integer stored in ecx.
+MSRs are witten to using the \texttt{WRMSR} instruction, it writes eax:edx to the register;
+MSRs are read from using the \texttt{RDMSR} instruction, it reads from the register into eax:edx.
+The most commonly used MSR is the Extended Feature Enable Register (EFER, sometimes IA32\_EFER), its contents are listed in the table below:
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|c|c|l|}
+    \hline \textbf{Bit} & \textbf{Label} & \textbf{Description} \\ \hline
+    0 & SCE & Enables SYSCALL/SYSRET instructions in 64-bit mode \\
+    8 & LME & Enabled IA-32e mode \\
+    10 & LMA & Indicates IA-32e mode is active when set \\
+    11 & NXE & Execute disable bit enable \\ \hline
+  \end{tabular}
+\end{table}
 
 \subsection{Stack}
 
