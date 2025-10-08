@@ -886,6 +886,11 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
     \insopxx{r|m}{i'64} \inslinea \insend
   \insname{3}{Jcc}{Jump If Condition Is Met}{Jumps if the condition is met}
     \insopx{i'64} \inslinea \inslineb \insend
+  \insname{9}{JMP}{Jump}{Jumps to the location in code referenced by OP1. The first encodings are relative signed offsets to the current location in code (i8 is a short jump (type of near jump)), the rest are near jumps (jumps within the current code segment). The second encoding are near jumps to absolute addresses. The third encoding is an immediate of a 16-bit segment selector and an abolute offset into it and performs a far jump into another code segment. The fourth encoding is a memory location that points to a 16-bit segment selector followed by an absolute offset and performs a far jump}
+    \insopx{i'64} \insmid
+    \insopx{(r|m)'8} \insmid
+    \insopx{i16:16|32} \insmid
+    \insopx{m16:('8)} \inslinea \inslineb \inslineb \inslineb \inslineb \insend
 
   \institle{Functions}
 
@@ -954,6 +959,52 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
 
 \end{longtable}
 \setlength{\tabcolsep}{6pt}
+
+% http://unixwiz.net/techtips/x86-jumps.html
+\subsection{Conditions Codes}
+
+The condition codes (cc) are used in conditional instructions such as Jcc and replace the cc (not all codes are supported by all conditional instructions).
+Different codes check different flags or registers, the codes are described below along with their conditions:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|l|}
+    \hline \textbf{Code} & \textbf{Description} & \textbf{Flags} & \textbf{Signed-ness} \\ \hline
+    O & Overflow & OF = 1 & \\ \hline
+    NO & Not Overflow & OF = 0 & \\ \hline
+    S & Sign & SF = 1 & \\ \hline
+    NS & Not Sign & SF = 0 & \\ \hline
+    E & Equal & \multirow{2}*{ZF = 1} & \\ \cline{1-2}
+    Z & Zero & & \\ \hline
+    NE & Not Equal & \multirow{2}*{ZF = 0} & \\ \cline{1-2}
+    NZ & Not Zero & & \\ \hline
+    B & Below & \multirow{3}*{CF = 1} & \multirow{3}*{Unsigned} \\ \cline{1-2}
+    NAE & Not Above or Equal & & \\ \cline{1-2}
+    C & Carry & & \\ \hline
+    NB & Not Below & \multirow{3}*{CF = 0} & \multirow{3}*{Unsigned} \\ \cline{1-2}
+    AE & Above or Equal & & \\ \cline{1-2}
+    NC & Not Carry & & \\ \hline
+    BE & Below or Equal & \multirow{2}*{CF = 1 or ZF = 1} & \multirow{2}*{Unsigned} \\ \cline{1-2}
+    NA & Not Above & & \\ \hline
+    A & Above & \multirow{2}*{CF = 0 and ZF = 0} & \multirow{2}*{Unsigned} \\ \cline{1-2}
+    NBE & Not Below or Equal & & \\ \hline
+    L & Less & \multirow{2}*{SF != OF} & \multirow{2}*{Signed} \\ \cline{1-2}
+    NGE & Not Greater or Equal & & \\ \hline
+    GE & Greater or Equal & \multirow{2}*{SF = OF} & \multirow{2}*{Signed} \\ \cline{1-2}
+    NL & Not Less & & \\ \hline
+    LE & Less or Equal & \multirow{2}*{ZF = 1 or SF != OF} & \multirow{2}*{Signed} \\ \cline{1-2}
+    NG & Not Greater & & \\ \hline
+    G & Greater & \multirow{2}*{ZF = 0 and SF = OF} & \multirow{2}*{Signed} \\ \cline{1-2}
+    NLE & Not Less or Equal & & \\ \hline
+    P & Parity & \multirow{2}*{PF = 1} & \\ \cline{1-2}
+    PE & Parity Even & & \\ \hline
+    NP & Not Parity & \multirow{2}*{PF = 0} & \\ \cline{1-2}
+    PO & Parity Odd & & \\ \hline
+    CXZ & CX = 0 & & \\ \cline{1-2}
+    ECXZ & ECX = 0 & & \\ \cline{1-2}
+    RCXZ & RCX = 0 & & \\ \hline
+  \end{tabular}
+\end{table}
 
 % TODO: Finish this section a bit better
 In long mode, to access many of its features the REX prefix has to be placed before an instruction.
