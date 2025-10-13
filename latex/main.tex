@@ -475,8 +475,6 @@ There are many models which can be used to implement segmentation; some common m
 
 \subsubsection{Long Mode}
 
-% TODO: Somewhere (probs early in memory) add in the different types of address: Logical, effective (logical's offset), linear (and virtual), physical
-
 The behaviour of segmentation in long mode depends if it is running in 64-bit or compatibility mode.
 In compatibility mode it functions the same as it does in protected mode.
 In 64-bit mode, segmentation is generally disabled (but not completely), which creates a flat 64-bit linear address space.
@@ -816,7 +814,27 @@ PAE:
 5.12 - virtual memory
 
 \subsection{Memory addressing}
-% TODO: [es:di] and [eax + ebx * 4 + 2]
+
+Memory addressing is used to access specific locations in main memory, memory addresses have the syntax: \\
+\texttt{[Segment:Base + Index*Scale + Displacement]} \\
+x86 has multiple different types of address:
+
+\begin{enumerate}
+  \item Logical: \\
+    Consists of a segment selector (16-bit) and an offset (same bit size as the code).
+    Usually inferred from the type of memory access (eg uses CS for code, SS for stack) or from a segment override.
+    Produces a linear address after segmentation.
+  \item Effective: \\
+    Consists of a combination of a \texttt{Base} register, an \texttt{Index} register (optionally with an immediate \texttt{Scale} which is 1, 2, 4, or 8) and an immediate \texttt{Displacement}.
+    Once the effective address is computed it is used as the offset in the logical address.
+  \item Linear: \\
+    If paging is not used, the linear address is equal to the physical address.
+    If paging is used, the corresponding physical address is found using the paging hierarchy.
+  \item Virtual: \\
+    A valid linear address that does not correspond to an in-memory page, causing the kernel to generate the page via an interrupt (eg load it from disk).
+  \item Physical: \\
+    The physical location of the memory in main memory.
+\end{enumerate}
 
 \section{Instructions}
 
