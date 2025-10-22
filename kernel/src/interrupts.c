@@ -77,6 +77,16 @@ static char hex(uint8_t nibble) {
     }
 }
 
+__attribute__((no_caller_saved_registers))
+static void update_cursor(uintptr_t x) {
+    uint16_t pos = (VGA_HEIGHT - 1) * VGA_WIDTH + x;
+
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
 static char scancode_map[256] = {
     // 00
     '\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\0', '\0',
@@ -122,6 +132,7 @@ static void keyboard_handler(struct int_frame* frame) {
                 if (char_index > 0) {
                     char_index--;
                     *(char*)(vga + char_index) = 0x20;
+                    update_cursor(char_index);
                 }
             } else if (scancode == 0x1C) {
                 int_println("");
@@ -130,6 +141,7 @@ static void keyboard_handler(struct int_frame* frame) {
                     line[i] = (vga[i] & 0xFF) | 0x0700;
                     vga[i] = 0x1F20;
                     char_index = 0;
+                    update_cursor(char_index);
                 }
             } else {
                 char* string = "AA";
@@ -141,6 +153,7 @@ static void keyboard_handler(struct int_frame* frame) {
             if (char_index < VGA_WIDTH) {
                 *(char*)(vga + char_index) = map;
                 char_index++;
+                update_cursor(char_index);
             }
         }
     } else {
@@ -189,6 +202,9 @@ void create_idt() {
         : "m" (*lidt)
         : "memory"
     );
+
+    // Set cursor to 0
+    update_cursor(0);
 
     // Enable PIC
     outb(0x20, 0x11);  // Initialize the command port
