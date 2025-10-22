@@ -123,6 +123,14 @@ static void keyboard_handler(struct int_frame* frame) {
                     char_index--;
                     *(char*)(vga + char_index) = 0x20;
                 }
+            } else if (scancode == 0x1C) {
+                int_println("");
+                uint16_t* line = vga - VGA_WIDTH;
+                for (uintptr_t i = 0; i < VGA_WIDTH; i++) {
+                    line[i] = (vga[i] & 0xFF) | 0x0700;
+                    vga[i] = 0x1F20;
+                    char_index = 0;
+                }
             } else {
                 char* string = "AA";
                 string[0] = hex(scancode >> 4);
