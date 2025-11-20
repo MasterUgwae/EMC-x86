@@ -901,6 +901,10 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
   \insname{2}{[LOCK] XCHG}{Exchange}{Swaps (exchanges) the values held in OP1 and OP2}
     \insopxx{r}{r|m} \insmid
     \insopxx{r|m}{r} \insend
+  \insname{2}{IN}{Input From Port}{Copies the value from the I/O port specified by OP2 into OP1}
+    \insopxx{al|ax|eax}{dx|i8} \inslinea \insend
+  \insname{2}{OUT}{Output To Port}{Copies the value from OP2 into the I/O port specified by OP1}
+    \insopxx{dx|i8}{al|ax|eax} \inslinea \insend
 
   \institle{Control}
 
@@ -918,16 +922,23 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
     \insopxx{r|m}{i'64} \inslinea \insend
   \insname{3}{Jcc}{Jump If Condition Is Met}{Jumps if the condition is met}
     \insopx{i'64} \inslinea \inslineb \insend
-  \insname{9}{JMP}{Jump}{Jumps to the location in code referenced by OP1. The first encodings are relative signed offsets to the current location in code (i8 is a short jump (type of near jump)), the rest are near jumps (jumps within the current code segment). The second encoding are near jumps to absolute addresses. The third encoding is an immediate of a 16-bit segment selector and an abolute offset into it and performs a far jump into another code segment. The fourth encoding is a memory location that points to a 16-bit segment selector followed by an absolute offset and performs a far jump}
+  \insname{9}{JMP}{Jump}{Jumps to the location in code referenced by OP1. The first encodings are relative signed offsets to the current location in code (i8 is a short jump (type of near jump)), the rest are near jumps (jumps within the current code segment). The second encoding are near jumps to absolute addresses. The third encoding is an immediate of a 16-bit segment selector and an absolute offset into it and performs a far jump into another code segment. The fourth encoding is a memory location that points to a 16-bit segment selector followed by an absolute offset and performs a far jump}
     \insopx{i'64} \insmid
     \insopx{(r|m)'8} \insmid
     \insopx{i16:16|32} \insmid
     \insopx{m16:('8)} \inslinea \inslineb \inslineb \inslineb \inslineb \insend
 
-  \institle{Functions}
+  \institle{Procedures}
+  
+  % TODO: ret, call
+% \insname{4}{RET}{Return From Procedure}{Returns control to the return address located at the top of the stack (usually placed there by a CALL). OP2 specifies the number of } %
+  \insname{4}{IRET|IRETD|IRETQ}{Interrupt Return}{Returns control to the interrupted program from the interrupt handler. It pops off the data pushed to the stack during the interrupt such as EFLAGS, Instruction Pointer and CS}
+    \insop \inslinea \inslineb \inslineb \insend
+
+  \institle{Stack}
 
   % TODO: check this
-  \insname{10}{PUSH}{Push data onto the stack}{Decrements the Stack Pointer by the operand size, then moves OP1 to the memory location pointed to by the it. It is recommended to only push values the same size as the pointer size to prevent a misaligned stack. Values less than the operand size are sign-extended to the operand size however segment registers are zero-extended. The operand size can be overridden by prefixes however its based on the current stack segment D flag. In long mode, 32-bit registers and the CS,DS,ES and SS registers cannot be encoded}
+  \insname{10}{PUSH}{Push data onto the stack}{Decrements the Stack Pointer by the operand size, then moves OP1 to the memory location pointed to by the it. It is recommended to only push values the same size as the pointer size to prevent a misaligned stack. Values less than the operand size are sign-extended to the operand size however segment registers are zero-extended. The operand size can be overridden by prefixes however its based on the current stack segment D flag. In long mode, 32-bit registers and the CS, DS, ES and SS registers cannot be encoded}
     \insopx{(r|m)'8} \insmid
     \insopx{i'64} \insmid
     \insopx{s} \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
