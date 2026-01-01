@@ -525,7 +525,7 @@ They contain multiple parts which can be categorised into: (linear) base address
     44:44 & 1 & S & Descriptor type, 0 = system, 1 = code/data \\
     43:40 & 4 & Type & Segment type \\
     39:16 & 24 & Base 23:00 & 3 byte of the base address \\
-    00:16 & 16 & Limit 15:00 & 2 bytes of the base address \\ \hline
+    15:00 & 16 & Limit 15:00 & 2 bytes of the base address \\ \hline
   \end{tabular}
 \end{table}
 
@@ -849,6 +849,7 @@ x86 has multiple different types of address:
 
 \section{Instructions}
 
+This section contains many of the x86 instructions and their use, it is not an exhaustive list and is a simplification of how many instructions work (by not including many of the potential exceptions which may be raised, not including how the instructions are encoded in machine code etc), however it should be sufficient enough to create simple programs.
 The format of the instruction is \texttt{instruction op1, op2, op3} eg \texttt{'MOV RAX, 10'}.
 Each instruction has different limitations to what type an operand can be, these types are
 
@@ -874,6 +875,7 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
 
 \newcommand{\insend}{\end{tabular} \setlength{\tabcolsep}{0pt} \\ \hline} % End of final row of operands
 \newcommand{\institle}[1]{#1 \\ \hline}
+\newcommand{\insnote}[1]{\makecell[tp{\dimexpr\linewidth-10pt\relax}]{#1} \\ \hline}
 \newcommand{\instable}{\setlength{\tabcolsep}{6pt} \begin{tabular}[t]{>{\centering\arraybackslash}p{0.555\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}|>{\centering\arraybackslash}p{0.115\linewidth}}}
 \newcommand{\inslineb}{\\ & \multicolumn{3}{c}{}}
 \newcommand{\inslinea}{\\ \cline{2-4} & \multicolumn{3}{c}{}}
@@ -920,8 +922,8 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
   \insname{3}{TEST}{Logical Compare}{Performs a bitwise logical AND on OP1 and OP2, sets the relevant flags and discards the result}
     \insopxx{r|m}{r} \insmid
     \insopxx{r|m}{i'64} \inslinea \insend
-  \insname{3}{Jcc}{Jump If Condition Is Met}{Jumps if the condition is met}
-    \insopx{i'64} \inslinea \inslineb \insend
+  \insname{2}{Jcc}{Jump If Condition Is Met}{Jumps if the condition is met}
+    \insopx{i'64} \inslinea \insend
   \insname{9}{JMP}{Jump}{Jumps to the location in code referenced by OP1. The first encodings are relative signed offsets to the current location in code (i8 is a short jump (type of near jump)), the rest are near jumps (jumps within the current code segment). The second encoding are near jumps to absolute addresses. The third encoding is an immediate of a 16-bit segment selector and an absolute offset into it and performs a far jump into another code segment. The fourth encoding is a memory location that points to a 16-bit segment selector followed by an absolute offset and performs a far jump}
     \insopx{i'64} \insmid
     \insopx{(r|m)'8} \insmid
@@ -940,6 +942,24 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
     \insopx{i16} \inslinea \inslineb \inslineb \insend
   \insname{4}{IRET|IRETD|IRETQ}{Interrupt Return}{Returns control to the interrupted program from the interrupt handler. It pops off the data pushed to the stack during the interrupt such as EFLAGS, Instruction Pointer and CS}
     \insop \inslinea \inslineb \inslineb \insend
+  \insname{4}{IRET|IRETD|IRETQ}{Interrupt Return}{Returns control to the interrupted program from the interrupt handler. It pops off the data pushed to the stack during the interrupt such as EFLAGS, Instruction Pointer and CS}
+    \insop \inslinea \inslineb \inslineb \insend
+  % TODO: HLT, fences, descriptors, TLB, MSRs, CLI, ENTER, CPUID
+  \insname{2}{INT}{Call to Interrupt Procedure}{Generates a call to the interrupt handler specified by OP1}
+    \insopx{i8} \inslinea \insend
+
+  \institle{Syscalls}
+  \insnote{These instructions are used for syscalls (both calling and returning), SYSCALL and SYSRET are better supported on 64-bit CPUs and operating systems. All these instructions set the CS and SS segment selector registers to values defined in MSRs, and their descriptor caches to fixed values with base 0, limit 0xFFFFF, and flags as defined below (in 3 hexadecimal nibbles where the granularity flag is the most significant bit and the type is the last nibble). It is the responsibility of the OS to ensure that the fixed values of the descriptors match the descriptors referenced by the selectors}
+
+  % TODO: if not in 64-bit mode or EFER_EFER.SCE is not set then #UD
+  \insname{9}{SYSCALL}{Fast System Call}{Invokes the OS system-call handler at privilege level 0, it does so by loading RIP from IA32\_LSTAR MSR and saves the address of the instruction following SYSCALL into RCX. Furthermore RFLAGS is stored into R11, RFLAGS is then masked with NOT(IA32\_FMASK MSR) (clears every bit in RFLAGS which is set in the MSR). The CS selector is loaded with IA32\_STAR[47:32] AND 0xFFFC, and SS is loaded with IA32\_STAR[47:32] + 8. The flags loaded into the CS and SS segment descriptors are 0xA9B and 0xC93 respectively}
+    \insop \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
+  \insname{10}{SYSRET}{Return from Fast System Call}{Returns from an OS system-call handler to user code at privilege level 3, it is a companion instruction to SYSCALL. It loads RIP from RCX and RFLAGS from (R11 AND 0x3C7FD7H) OR 2. If the operand size is 64-bit it remains in 64-bit mode else it enters compatibility mode and only the low 32 bits of the registers are loaded. The CS selector is loaded with (IA32\_STAR[63:48] + 16) OR 3 if the operand size is 64-bit else it is loaded with IA32\_STAR[63:48] OR 3, and SS is loaded with (IA32\_STAR[63:48] + 8) OR 3. The flags loaded into the CS segment descriptor are 0xAFB if the operand size is 64-bit and 0xCFB if not and 0xCF3 for the SS segment descriptor}
+    \insop \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
+  \insname{10}{SYSENTER}{Fast System Call}{Executes a fast call to a level 0 system procedure or routine. In IA-32e mode, it transitions the processor to 64-bit mode, otherwise it remains in protected mode.It loads RIP (or EIP) from 63:0 (or 31:0) of IA32\_SYSENTER\_EIP, and RSP (or ESP) from 63:0 (or 31:0) of IA32\_SYSENTER\_ESP. The CS selector is loaded with IA32\_SYSENTER\_CS[15:0] AND 0xFFFC, and SS is loaded with the value stored in CS + 8. The flags loaded into the CS segment descriptor are 0xA9B in IA-32e mode and 0xC9B if not and 0xC93 for the SS segment descriptor. Since no return information is saved, it is the responsibility of the caller and the OS to manage the return information}
+    \insop \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
+  \insname{12}{SYSEXIT}{Fast Return from Fast System Call}{Returns to privilege level 3 user code, it is a companion instruction to SYSENTER. If the operand size is 64-bit it remains in 64-bit mode, else it enters compatibility mode or remains in protected mode. RDX (or EDX) is loaded into RIP (or EIP) if the return is not to 64-bit mode then only bits 31:0 are loaded, and RCX (or ECX) is loaded into RSP (or ESP) if the return is not to 64-bit mode then only bits 31:0 are loaded. The CS selector is loaded with (IA32\_SYSENTER\_CS[15:0] + 32) OR 3 if the operand size is 64-bit else it is loaded with (IA32\_SYSENTER\_CS[15:0] + 16) OR 3, and SS is loaded with the value stored in CS + 8. The flags loaded into the CS segment descriptor are 0xAFB if the operand size is 64-bit and 0xCFB if not and 0xCF3 for the SS segment descriptor}
+    \insop \inslinea \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \inslineb \insend
 
   \institle{Stack}
 
