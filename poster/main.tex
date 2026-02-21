@@ -129,21 +129,14 @@
 
 \begin{column}{\colwidth}
   \begin{block}{BIOS/UEFI}
-    Vivamus congue volutpat elit non semper. Praesent molestie nec erat ac
-    interdum. In quis suscipit erat. \textbf{Phasellus mauris felis, molestie
-    ac pharetra quis}, tempus nec ante. Donec finibus ante vel purus mollis
-    fermentum. 
+    Most x86 processors are used within an IBM PC Compatible environment (a common environment which includes various hardware devices such as a PIC, and a BIOS).
+    The BIOS (Basic Input/Output System) is firmware ran during processor start up which transfers control over to the operating system, it is used to perform hardware initialisation and can perform operations requested by the OS through BIOS interrupts.
 
-    \begin{enumerate}
-      \item \textbf{Morbi mauris purus}, egestas at vehicula et, convallis
-        accumsan orci. Orci varius natoque penatibus et magnis dis parturient
-        montes, nascetur ridiculus mus.
-      \item \textbf{Cras vehicula blandit urna ut maximus}. Aliquam blandit nec
-        massa ac sollicitudin. Curabitur cursus, metus nec imperdiet bibendum,
-        velit lectus faucibus dolor, quis gravida metus mauris gravida turpis.
-      \item \textbf{Vestibulum et massa diam}. Phasellus fermentum augue non
-        nulla accumsan, non rhoncus lectus condimentum.
-    \end{enumerate}
+    The UEFI (Unified Extensible Firmware Interface) is a replacement for the legacy BIOS system.
+    After the BIOS initialises hardware, it drops back into a backwards-compatible real mode, which means the bootloader must initialise the A20 gate, GDT, LDT, and switch to protected/long mode;
+    UEFI performs these steps, simplifying the boot process.
+    UEFI contains many standardised functions which can be found through a system table and called by the OS, in comparison to BIOS interrupts which are not standardised.
+    The UEFI bootloader contains entries which consist of a drive partition and a path, the drive partition points to the EFI System Partition (ESP, usually FAT32), and the path points to the efi bootloader file in the partition.
   \end{block}
 
   \begin{block}{Registers}
@@ -155,25 +148,16 @@
   \end{block}
 
   \begin{block}{Operating modes}
-    Etiam sit amet tempus lorem, aliquet condimentum velit. Donec et nibh
-    consequat, sagittis ex eget, dictum orci. Etiam quis semper ante. Ut eu
-    mauris purus. Proin nec consectetur ligula. Mauris pretium molestie
-    ullamcorper. Integer nisi neque, aliquet et odio non, sagittis porta justo.
+    x86 processors have several operating modes which change how machine code is executed.
 
     \begin{itemize}
-      \item \textbf{Sed consequat} id ante vel efficitur. Praesent congue massa
-        sed est scelerisque, elementum mollis augue iaculis.
-        \begin{itemize}
-          \item In sed est finibus, vulputate
-            nunc gravida, pulvinar lorem. In maximus nunc dolor, sed auctor eros
-            porttitor quis.
-          \item Fusce ornare dignissim nisi. Nam sit amet risus vel lacus
-            tempor tincidunt eu a arcu.
-          \item Donec rhoncus vestibulum erat, quis aliquam leo
-            gravida egestas.
-        \end{itemize}
-      \item \textbf{Pellentesque facilisis dolor in leo} bibendum congue.
-        Maecenas congue finibus justo, vitae eleifend urna facilisis at.
+      \item Real: \\
+        All x86 processors start in real address mode at address FFFF:0000.
+      \item Protected: \\
+        Enables memory protection, enables the use of paging and a 32-bit instruction set, allowing the use of a larger address space and more multitasking features.
+      \item Long mode: \\
+        Enables the use of 64-bit registers and instructions, allowing a larger address space.
+        Furthermore it runs in two sub modes, one for 64-bit code and one for 32-bit compatibility mode.
     \end{itemize}
   \end{block}
 

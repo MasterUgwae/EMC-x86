@@ -1317,13 +1317,13 @@ The parameters for the syscall are placed in specific registers, below is a list
     EDI & R8 & Arg5 \\
     EBP & R9 & Arg6 \\
     EAX & EAX & Syscall \\
-    EAX & RAX & Ret1 \\
-    EDX & RDX & Ret2 \\
+    EAX & RAX & Return \\
     \hline
   \end{tabular}
 \end{table}
 
 Furthermore, the values in these registers (and others such as R11 and RCX) may be clobbered (their value changing after the syscall) so it is best to follow the System V ABI when performing syscalls.
+When using the syscall function in C, if the syscall had a negative return (error), it is negated and copied to errno and the function returns -1.
 
 \medskip
 
@@ -1367,24 +1367,25 @@ The table below contains the arguments, descriptions, return information, syscal
   \hline \begin{tabular}[t]{>{\centering\arraybackslash}p{0.8\linewidth}|>{\centering\arraybackslash}p{0.2\linewidth}}
     \begin{tabular}[t]{p{\linewidth}}
       \begin{tabular}[t]{*{3}{>{\centering\arraybackslash}p{0.249\linewidth}|}>{\centering\arraybackslash}p{0.249\linewidth}}
-        \textbf{Name} & \textbf{Ret1} & \textbf{i386} & \textbf{x86-64}
+        \textbf{Name} & \textbf{Return} & \textbf{i386} & \textbf{x86-64}
       \end{tabular}
     \end{tabular} & \textbf{Arguments}
   \end{tabular} \\ \hline
 
-  \sysentry{read}{???}{3}{0}{Attempts to read count bytes from the current position of the file into the buffer pointed to by ptr, the accumulator stores the true number of bytes read (if EOF less bytes would be read) and the position in the file is advanced by this many bytes. On error, -1 is returned instead}{\sysxxx{fd}{ptr*}{count}}
-  \sysentry{write}{???}{4}{1}{Writes the buffer (count bytes pointed to by ptr) to the file}{\sysxxx{fd}{ptr*}{count}}
-  \sysentry{open}{fd|error}{5}{2}{Opens the file located at pathname using the given flags, on success returns the file descriptor (non-negative integer), on failure returns -1. The mode argument is for the permissions of the created file when O\_CREAT is given as a flag and is otherwise ignored}{\sysxxx{pathname*}{flags}{mode}}
-  \sysentry{close}{status}{6}{3}{Closes the file descriptor, returns 0 on success and -1 on failure}{\sysx{fd}}
-  \sysentry{fstat}{status}{108}{5}{Writes information about the file descriptor into the \texttt{struct stat} pointed to by statbuf, returns 0 on success and -1 on failure}{\sysxx{fd}{statbuf*}}
-  \sysentry{exit}{???}{1}{60}{Exits the program with the specified error code}{\sysx{error}}
-  \sysentry{munmap}{???}{91}{11}{Frees the length bytes at the address addr, must exactly match its corresponding mmap call}{\sysxx{addr}{length}}
-  \sysentry{mremap}{?}{?}{?}{???}{\sys}
-  \sysentry{mmap}{???}{90}{9}{Allocates length (must be a multiple of the page size [4096]) bytes, if addr is NULL (0) then any location is chosen else it will attempt to allocate at addr; prot is the protection flags for the memory, it is an bitwise OR of READ (1), WRITE (2), EXECUTE (4). Flags contains the mapping flags which is a bitwise OR of each flag such as MAP\_PRIVATE (0x2, changes are private to the calling process and are not written back) and MAP\_ANONYMOUS (0x20, allocates from main memory so not backed by a file as fd is ignored), fd can be set to -1 for anonymous mappings and offset is the offset from the start of the file (must be a multiple of the page size). eax/rax contains the ptr to the memory location allocated or an error between -4096 and -1. If a fd is given, the file is added to the programs virtual address space without being loaded into main memory (similar to swap memory). Additionally huge pages can be allocated with certain mappings and caution should be used when using this to access a file since race conditions can occur between processes if the file is not locked and the changes are not immediately written so use msync or fsync}{\sysxxxxxx{addr}{length}{prot}{flags}{fd}{offset}}
+  \sysentry{read\cite{man-read}}{length|error}{3}{0}{Attempts to read up to \texttt{count} bytes from the current position of the file referred to by \texttt{fd} into the buffer pointed to by \texttt{buf}. The true number of bytes read is returned (if EOF less bytes would be read) and the position in the file is advanced by this many bytes, otherwise returns an error}{\sysxxx{fd}{buf*}{count}}
+  \sysentry{write\cite{man-write}}{length|error}{4}{1}{Writes up to \texttt{count} bytes from \texttt{buf} into the file referred to by \texttt{fd} at the current position of the file, and its position is advanced by the number of bytes written. On success the number of bytes written is returned, otherwise returns an error}{\sysxxx{fd}{buf*}{count}}
+  \sysentry{open\cite{man-open}}{fd|error}{5}{2}{Opens the file located at \texttt{path} using the given \texttt{flags}. On success returns the file descriptor (\texttt{fd}), otherwise returns an error. The mode argument is for the permissions of the created file when O\_CREAT or O\_TMPFILE is given as a flag and is otherwise ignored}{\sysxxx{path*}{flags}{mode}}
+  \sysentry{close\cite{man-close}}{0|error}{6}{3}{Closes the file descriptor (\texttt{fd}). On success returns 0, otherwise returns an error}{\sysx{fd}}
+  \sysentry{fstat\cite{man-stat}}{0|error}{108}{5}{Writes information about the file referred to by \texttt{fd} into the \texttt{struct stat\cite{man-stat-type}} pointed to by \texttt{statbuf}. On success returns 0, otherwise returns an error}{\sysxx{fd}{statbuf*}}
+  \sysentry{exit\cite{man-exit}}{noreturn}{1}{60}{Terminates the calling thread, \texttt{status \& 0xFF} is returned to the parent process (if the thread was the last in the process)}{\sysx{status}}
+  \sysentry{munmap\cite{man-mmap}}{0|error}{91}{11}{All pages containing part of the specified address range are unmapped (the region is also unmapped when the process is terminated). \texttt{addr} must be a multiple of page size but \texttt{length} does not need to be. On success 0 is returned, otherwise an error is returned (it is not an error if there were no mapped pages within the range)}{\sysxx{addr*}{length}}
+  \sysentry{mmap\cite{man-mmap}}{addr*|error}{90}{9}{Creates a new mapping in the virtual address space of the process. The kernel attempts to create a mapping aligned to a page boundary close to the \texttt{addr}, or chooses one itself if \texttt{addr} is NULL. The contents of a file mapping are initialised using \texttt{length} bytes starting at \texttt{offset} (multiple of page size) in the file referred to by \texttt{fd}, the file descriptor can be closed after mmap has returned without invalidating the mapping. \texttt{prot} describes the memory protection of the mapping (must not conflict with the open mode of the file); it is a bitwise OR of READ (1), WRITE(2) and EXEC (4). \texttt{flags} determines if updates to the mapping are visible to other processes with mappings to the same region, and if they are carried through to the underlying file; one important flag is MAP\_ANONYMOUS (0x20) for mappings not backed by files, \texttt{fd} should be -1 and \texttt{offset} should be 0. On success the address of the mapping is returned, otherwise an error is returned}{\sysxxxxxx{addr*}{length}{prot}{flags}{fd}{offset}}
 \end{longtable}
 \setlength{\tabcolsep}{6pt}
 
-A fd (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with (lowest unused integer), and the kernel keeps track of the open file. Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively, any negative fd is invalid so to specify no file, -1 is usually used.
+A fd (file descriptor) in Linux is an integer used to refer to a file, when opening a file the kernel returns an integer to the program to refer to the file with (lowest unused integer) and the kernel keeps track of the open file.
+Integers 0, 1 and 2 refer to stdin, stdout and stderr respectively; any negative fd is invalid -1 is usually used to refer to no file\cite{unix-fd}.
+Furthermore any arguments in the table which contain a * such as buf* are pointers.
 
 \section{Appendix}
 All of the code used/written has been appended below, it includes programs that can run on Linux or baremetal
