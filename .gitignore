@@ -1,4 +1,5 @@
 *.bin
+*.o
 **/target/
 kernel/build/
 latex/main.aux
