@@ -205,6 +205,8 @@ The store buffer is flushed when: a LOCK or a MFENCE/SFENCE is used, an I/O inst
   Resisters store a small amount of memory directly accessible to instructions.
 }
 
+% TODO: add EFLAGS/RFLAGS
+
 \layout{
   \subsubsection{General Purpose Registers}
 
@@ -1674,7 +1676,7 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
 }
 
 \layout{
-  \subsection{ISRs}
+  \subsection{Interrupt Handling}
 
   Interrupt Service Routines (ISRs) are code that handle interrupts, they generally should preserve state of the processor by pushing any registers to the stack before using them and popping them off before returning to the previous process by using the \texttt{IRET} instruction.
 } \bigskip
@@ -1688,6 +1690,23 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
   \bigskip \cite[Chapter~7.12.1]{sdm3}
 } \bigskip
 
+7.12.1.2
+The processor does not permit transfer of execution to a higher CPL, hence the handler should be placed in CPL0.
+
+7.12.1.3
+only difference between interrupt and trap gates is that interrupt clears EFLAGS.IF which prevents other interrupts from occurring, whilst trap gates do not.
+
+???
+stack IDT entry size determines interrupt-stack-frame pushes
+
+7.12.2
+prot task gate:
+Task switch occurs
+Entrie Context of interrupted program is saved automatically
+TSS permits handler to use a new CPL 0 stack 
+Handler can be isolated by giving it a separate address space
+The handler must disable interrupts while the TSS is marked as busy otherwise another interrupt could attempt to access the TSS causing a \#GP.
+
 \layout {
   % TODO: finish (64 bit stack contents + stack switches)
   7.14
@@ -1700,6 +1719,27 @@ Some instructions can be prefixed with LOCK, this makes the instruction atomic a
   IRET behaviour changes
   new stack switch/shadow stack
   Alignment of interrupt stack frame is different
+
+  7.14.2
+  if shadow stacks enabled, and interrupted procedure was not CPL 3 then CS:LIP:SSP is pushed
+  RSP handler is aligned to 16-byte
+
+  7.14.4
+  RSP loaded from TSS
+  (long mode stack switch identical to legacy except loaded SS is null)
+
+  7.14.5
+  Part of the 64-bit TSS
+  Useful for executing specific interrupts (eg NMI, double-fault, machine-check) or execute on a known-good stack
+
+  IST (interrupt stack table) provides up to seven IST pointers in the TSS.
+  The pointers are referenced by IDT descriptors.
+
+  Descriptor contains 3-bit IST index that provides an offset into the IST section of the TSS.
+  The processor loads the value pointed by an IST pointer into the RSP.
+  SS is set to NULL and its RPL is set to new CPL.
+  Old SS, RSP, RFLAGS, CS and RIP are pushed to the new stack
+  If IST index is 0 then modified legacy stack-switching is used.
 
 
 } \bigskip
@@ -1817,11 +1857,11 @@ When using the APIC the PICs should be disabled, this can be done by sending 0xF
 \subsection{IPI}
 
 \layout{
-  \subsection{IDT}
+  \subsection{Interrupt Descriptor Table}
 
-  The Interrupt Descriptor Table associates each interrupt vector with an interrupt descriptor for the ISR to handle the interrupt.
+  The Interrupt Descriptor Table (IDT) associates each interrupt vector with an interrupt descriptor for the ISR to handle the interrupt.
   The linear base address of the IDT and limit (size of IDT - 1) is contained in the IDT register (IDTR), which can be written to using the \texttt{SIDT} instruction.
-  Since there are only 256 interrupt vectors, the IDT should not contain more than 265 descriptors.
+  Since there are only 256 interrupt vectors, the IDT should not contain more than 256 descriptors.
   In protected mode each descriptor is 8 bytes and in IA-32e mode each descriptor is 16 bytes.
   When an interrupt occurs the interrupt vector provides a vector number which is used to index into the IDT, and uses the descriptor to call the corresponding ISR handler.
 
@@ -1839,7 +1879,7 @@ When using the APIC the PICs should be disabled, this can be done by sending 0xF
 }
 
 \layout{
-  Task-gate descriptor (protected)
+  Protected mode Task-gate descriptor:
   \begin{table}[H]
     \centering
     \begin{tabular}{|c|c|l|}
@@ -1856,7 +1896,7 @@ When using the APIC the PICs should be disabled, this can be done by sending 0xF
 }
 
 \layout{
-  Interrupt-gate descriptor (protected)
+  Protected mode Interrupt/Trap-gate descriptor:
   \begin{table}[H]
     \centering
     \begin{tabular}{|c|c|l|}
@@ -1864,59 +1904,39 @@ When using the APIC the PICs should be disabled, this can be done by sending 0xF
       63:48 & Offset 31:16 & Bits 31:16 of the address of the ISR \\
       47 & P & Segment Present Flag \\
       46:45 & DPL & Descriptor Privilege Level \\
-      44 & 0 & Must be 0 \\
-      43 & D & 1 = 32 bit, 0 = 16 bit \\
-      42:32 & 11000000000 & Must be 11000000000 \\
-      31:16 & CS & Code Segment Selector \\
-      15:0 & Offset 15:0 & Bits 15:0 of the address of the ISR \\ \hline
-    \end{tabular}
-  \end{table}
-}
-
-\layout{
-  Trap-gate descriptor (protected)
-  \begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|l|}
-      \hline \textbf{Bits} & \textbf{Label} & \textbf{Description} \\ \hline
-      63:48 & Offset 31:16 & Bits 31:16 of the address of the ISR \\
-      47 & P & Segment Present Flag \\
-      46:45 & DPL & Descriptor Privilege Level \\
-      44 & 0 & Must be 0 \\
-      43 & D & 1 = 32 bit, 0 = 16 bit \\
-      42:32 & 11100000000 & Must be 11100000000 \\
+      44:40 & Type & Segment Type \\
+      39:32 & Rsvd. & Must be 0 \\
       31:16 & CS & Code Segment Selector \\
       15:0 & Offset 15:0 & Bits 15:0 of the address of the ISR \\ \hline
     \end{tabular}
   \end{table}
 
-  \cite[Chapter~7.11]{sdm3}
+  Where type is 00110 for a 16-bit interrupt gate, 01110 for a 32-bit interrupt gate, 00111 for a 16-bit trap gate, or 32-bit trap gate.
+
+  \bigskip \cite[Chapter~7.11]{sdm3}
 } \bigskip
 
 \layout{
-  64-bit Interrupt/trap gate:
+  IA-32e Interrupt/Trap gate descriptor:
   \begin{table}[H]
     \centering
-    \begin{tabular}{|c|c|l|}
+    \begin{tabular}{|c|c|m{0.5\linewidth}|}
       \hline \textbf{Bits} & \textbf{Label} & \textbf{Description} \\ \hline
       127:96 & Rsvd. & Reserved (must be 0) \\
       95:64 & Offset 63:32 & Bits 63:32 of the address of the ISR \\
       63:48 & Offset 31:16 & Bits 31:16 of the address of the ISR \\
       47 & P & Segment Present Flag \\
       46:45 & DPL & Descriptor Privilege Level \\
-      44 & 0 & Must be 0 \\
-      43:40 & Type & Type of the Descriptor \\
-      39:35 & 0 & Must be 0 \\
+      44:35 & Type & Descriptor type \\
       34:32 & IST & Interrupt Stack Table \\
       31:16 & CS & Code Segment Selector \\
       15:0 & Offset 15:0 & Bits 15:0 of the address of the ISR \\ \hline
     \end{tabular}
   \end{table}
 
-  \cite[Chapter~7.14]{sdm3}
+  Where type is 0111100000 for an Interrupt Gate or 0111000000 for a Trap Gate
 
-  % TODO: check the gates
-  % TYPE = 1110 (interrupt) or 1111 (trap)
+  \bigskip \cite[Chapter~7.14]{sdm3} \cite[Chapter~3.5]{sdm3}
 }
 
 \subsection{BIOS interrupts}
