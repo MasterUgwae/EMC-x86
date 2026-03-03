@@ -1855,26 +1855,32 @@ Handlers can be either 16-bit or 32-bit and interrupt-stack-pushes are the same 
   \bigskip \cite{osdev-int} \cite{osdev-pic}
 }
 
-\subsection{APIC}
+\layout{
+  \subsection{APIC}
 
-The APIC (Advanced Programmable Interrupt Controller) is the updated standard for the older PIC.
-The APIC is used for sophisticated interrupt redirection and for sending interrupts between processors in multiprocessor systems.
-When using the APIC the PICs should be disabled, this can be done by sending 0xFF to both PIC mask ports.
-The PIC should still be remapped as it could still give spurious interrupts which would then be misinterpreted by the OS.
+  The APIC (Advanced Programmable Interrupt Controller) is the updated standard for the older PIC.
+  The APIC is used for sophisticated interrupt redirection and for sending interrupts between processors in multiprocessor systems.
+  When using the APIC the PICs should be disabled, this can be done by sending 0xFF to both PIC mask ports.
+  The PIC should still be remapped as it could still give spurious interrupts which would then be misinterpreted by the OS.
+  There is both a local APIC and I/O APIC, the I/O APIC is an external chip whilst there is a local APIC in each processor (this document focuses on the local APIC).
+  % TODO: cite above
+} \bigskip
 
-12.4.6
-APIC ID is returned in EBX[31:24] by CPUID 1
+\layout {
+  APIC ID is returned in EBX[31:24] by CPUID 1
 
-12.4.1
-The Local APIC contains registers
-They are memory mapped in a single 4-KiB space.
-They are 32-bits and 128-bit aligned and should be accessed using 32-bit load/stores.
-The memory between registers should not be accessed.
-Wider registers are accessed via multiple 32-bit accesses.
+  \bigskip \cite[Chapter~12.4.6]{sdm3}
+} \bigskip
 
-By default memory-mapped to a 4-KiB region starting at 0xFEE00000 and should be designated as strong uncacheable (UC).
-It can be relocated using the IA32\_APIC\_BASE MSR
+\layout {
+  The Local APIC contains registers, which are memory mapped in a single 4-KiB space.
+  They are 32-bits registers and are 128-bit aligned and should be accessed using 32-bit load/stores.
+  The memory between registers should not be accessed, and wider registers are accessed via multiple 32-bit accesses.
+  By default it is a memory-mapped to a 4-KiB region starting at 0xFEE00000 and should be designated as strong uncacheable (UC).
+  It can be relocated using the IA32\_APIC\_BASE MSR
+} \bigskip
 
+The following is a list of the APIC registers along with their offsets to the APIC base address:
 \begin{longtable}{|c|l|c|}
   \hline \textbf{Offset} & \textbf{Register Name} & \textbf{R/W} \\ \hline
   \endhead
@@ -1948,48 +1954,102 @@ It can be relocated using the IA32\_APIC\_BASE MSR
   0F0H & Rsvd. & \\
 \end{longtable}
 
-12.5.1
-Local Vector Table (LVT)
+\cite[Chapter~12.4.1]{sdm3} \bigskip
 
-\begin{table}[H]
-  \centering
-  \begin{tabular}{|c*{10}{|c}|}
-    \hline \textbf{LVT} & \textbf{31:19} & \textbf{18:17} & \textbf{16} & \textbf{15} & \textbf{14} & \textbf{13} & \textbf{12} & \textbf{11} & \textbf{10:8} & \textbf{7:0} \\ \hline
+\layout{
+  The following table describes the layout of the Local Vector Tables (LVTs) Registers:
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c*{10}{|c}|}
+      \hline \textbf{LVT} & \textbf{31:19} & \textbf{18:17} & \textbf{16} & \textbf{15} & \textbf{14} & \textbf{13} & \textbf{12} & \textbf{11} & \textbf{10:8} & \textbf{7:0} \\ \hline
 
-    \textbf{Timer} & Rsvd. & TM1 & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & Rsvd. & Vector \\
-    \textbf{CMCI} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\
-    \textbf{LINT0} & Rsvd. & Rsvd. & Mask & TM2 & RIRR & IIPP & DS & Rsvd. & DM & Vector \\
-    \textbf{LINT1} & Rsvd. & Rsvd. & Mask & TM2 & RIRR & IIPP & DS & Rsvd. & DM & Vector \\
-    \textbf{Error} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & Rsvd. & Vector \\
-    \textbf{Perf Counters} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\
-    \textbf{Thermal Sensor} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\ \hline
-  \end{tabular}
-\end{table}
+      \textbf{Timer} & Rsvd. & TM1 & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & Rsvd. & Vector \\
+      \textbf{CMCI} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\
+      \textbf{LINT0} & Rsvd. & Rsvd. & Mask & TM2 & RIRR & IIPP & DS & Rsvd. & DM & Vector \\
+      \textbf{LINT1} & Rsvd. & Rsvd. & Mask & TM2 & RIRR & IIPP & DS & Rsvd. & DM & Vector \\
+      \textbf{Error} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & Rsvd. & Vector \\
+      \textbf{Perf Counters} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\
+      \textbf{Thermal Sensor} & Rsvd. & Rsvd. & Mask & Rsvd. & Rsvd. & Rsvd. & DS & Rsvd. & DM & Vector \\ \hline
+    \end{tabular}
+  \end{table}
+}
 
-\begin{itemize}
-  \item Timer Mode (TM1): \\
-    00 = One-shot, 01 = Periodic, 10 = TSC-Deadline (uses the absolute target value in the IA32\_TSC\_DEADLINE MSR)
-  \item Mask: \\
-    0 = Not Masked, 1 = Masked. When the performance counter interrupt is generated, its mask bit is set.
-  \item Vector: \\
-    Interrupt Vector Number
-  \item Delivery Status (DS) - Read only: \\
-    0 = Idle, 1 = Send Pending
-  \item Delivery Mode (DM): \begin{itemize}
-      \item 000 = Fixed - delivers the interrupt in the vector field
-      \item 010 = SMI - delivers a SMI interrupt, vector should be set to 0
-      \item 100 = NMI - delivers a NMI interrupt, vector is ignored
-      \item 101 = INIT - delivers an INIT request, vector should be set to 0, not supported by CMCI, thermal monitor or performance counter
-      \item 111 = ExtINT - causes the processor to respond to the interrupt as if it originated from an externally connected (8259A-compatible) interrupt controller, a INTA signal is sent to the external controller which is expected to provide the vector information, only one processor should contain an ExtINT and there should only be one ExtINT source.
-      Not supported by CMCI, thermal monitor or performance counter
-    \end{itemize}
-  \item Trigger Mode (TM2): \\
-    0 = Edge sensitive, 1 = Level sensitive. Only used when delivery mode is fixed otherwise it is always edge sensitive, unless the delivery mode is ExtINT then it is level sensitive. Timer and error interrupts are treated as edge sensitive.  If the local APIC is not used with an I/O APIC and fixed delivery mode is used then it will always use level sensitive mode. Level-sensitive interrupts are not supported for LINT1
-  \item Remote IRR (RIRR) - Read only: \\
-    For fixed-mode level-triggered interrupts, this flag is set then the local APIC accepts the interrupt for servicing and is reset when an EOI command is received from the processor
-  \item Interrupt Input Pin Polarity (IIPP): \\
-    0 = Active high, 1 = Active low
-\end{itemize}
+\layout{
+  The following list describes the use of several of the fields in the previous table:
+  \begin{itemize}
+    \item Timer Mode (TM1): \\
+      00 = One-shot, 01 = Periodic, 10 = TSC-Deadline (uses the absolute target value in the IA32\_TSC\_DEADLINE MSR)
+    \item Mask: \\
+      0 = Not Masked, 1 = Masked. When the performance counter interrupt is generated, its mask bit is set.
+    \item Vector: \\
+      Interrupt Vector Number
+    \item Delivery Status (DS) - Read only: \\
+      0 = Idle, 1 = Send Pending
+    \item Delivery Mode (DM): \begin{itemize}
+        \item 000 = Fixed - delivers the interrupt in the vector field
+        \item 010 = SMI - delivers a SMI interrupt, vector should be set to 0
+        \item 100 = NMI - delivers a NMI interrupt, vector is ignored
+        \item 101 = INIT - delivers an INIT request, vector should be set to 0, not supported by CMCI, thermal monitor or performance counter
+        \item 111 = ExtINT - causes the processor to respond to the interrupt as if it originated from an externally connected (8259A-compatible) interrupt controller, a INTA signal is sent to the external controller which is expected to provide the vector information, only one processor should contain an ExtINT and there should only be one ExtINT source.
+        Not supported by CMCI, thermal monitor or performance counter
+      \end{itemize}
+    \item Trigger Mode (TM2): \\
+      0 = Edge sensitive, 1 = Level sensitive. Only used when delivery mode is fixed otherwise it is always edge sensitive, unless the delivery mode is ExtINT then it is level sensitive. Timer and error interrupts are treated as edge sensitive.  If the local APIC is not used with an I/O APIC and fixed delivery mode is used then it will always use level sensitive mode. Level-sensitive interrupts are not supported for LINT1
+    \item Remote IRR (RIRR) - Read only: \\
+      For fixed-mode level-triggered interrupts, this flag is set then the local APIC accepts the interrupt for servicing and is reset when an EOI command is received from the processor
+    \item Interrupt Input Pin Polarity (IIPP): \\
+      0 = Active high, 1 = Active low
+  \end{itemize}
+
+  \cite[Chapter~12.5.1]{sdm3}
+} \bigskip
+
+\layout{
+  For all interrupts except those delivered with the NMI, SMI, INIT, ExtINT, start-up or INIT-deassert, the interrupt handler must write 0s to the end-of-interrupt (EOI) register, this must occur at the end of the interrupt handler before the IRET. This indicates the interrupt is complete and the local APIC can issue another interrupt.
+
+  \bigskip \cite[Chapter~12.8.5]{sdm3}
+}
+
+\layout{
+  \subsubsection{Priority}
+
+  Each interrupt delivered to the processor through the local APIC has a priority based on its vector number.
+  The interrupt-priority class is the value of bits 7:4 of the vector number.
+  The lowest priority class is 1 and the highest is 15, vector numbers 0-15 are illegal so are never delivered, since vectors 0-31 are reserved, software should configure interrupt vectors to use interrupt-priority classes 2-15.
+  Each interrupt class encompasses 16 vectors, the relative priority of these vectors is determined by bits 3:0 of the interrupt vector.
+
+  \bigskip \cite[Chapter~12.8.3]{sdm3}
+}
+
+\layout{
+  \subsubsection{Errors}
+
+  The local APIC records errors detected during interrupt handling in the Error Status Register (ESR).
+
+  \bigskip
+
+  Error Status Register Format:
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|l|}
+      \hline \textbf{Bits} & \textbf{Description} \\ \hline
+      31:8 & Rsvd. \\
+      7 & Illegal Register Address \\
+      6 & Received Illegal Vector \\
+      5 & Send Illegal Vector \\
+      4 & Redirectable IPI \\
+      3 & Receive Accept Error \\
+      2 & Send Accept Error \\
+      1 & Receive Checksum Error \\
+      0 & Send Checksum Error \\ \hline
+    \end{tabular}
+  \end{table}
+
+  Before reading from the ESR, software should write 0s to it, this updates it with any errors detected since the last write to it.
+  The LVT Error Register specifies the vector of the interrupt to be delivered when the error was detected.
+
+  \bigskip \cite[Chapter~12.5.3]{sdm3}
+}
 
 \layout{
   \subsubsection{Interprocessor Interrupts}
@@ -2099,6 +2159,33 @@ Local Vector Table (LVT)
   Default divide is 2
 
   \bigskip \cite[Chapter~13.5.4]{sdm3}
+}
+
+\layout{
+  \subsubsection{Spurious Interrupt}
+
+  When a processor raises its task priority to be greater than or equal to the level of the interrupt for which the processor INTR signal is currently being asserted. If at the time the INTA cycle is issued the interrupt that was dispensed has become masked, the APIC will deliver a spurious-interrupt vector, it does not affect the ISR so the handler should not return an EOI.
+
+  \bigskip
+
+  Spurious-Interrupt Vector Register (SVR):
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|l|}
+      \hline \textbf{Bits} & \textbf{Description} \\ \hline
+      31:13 & Rsvd. \\
+      12 & EOI-Broadcast Supression, 0 = Broadcast EOI, 1 = Do not broadcast EOI \\
+      11:10 & Rsvd. \\
+      9 & Focus Processor Checking, 0 = Enabled, 1 = Disabled \\
+      8 & 0 = APIC Disabled, 1 = APIC Enabled \\
+      7:0 & Spurious Vector \\ \hline
+    \end{tabular}
+  \end{table}
+
+  The Spurious vector is the interrupt vector number to be delivered when the APIC generates a spurious interrupt.
+  On some processors bits 3:0 are 1.
+
+  \bigskip \cite[Chapter~12.9]{sdm3}
 }
 
 \layout{
