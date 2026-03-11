@@ -64,6 +64,7 @@
 
 \newcommand{\myref}[1]{[\nameref{#1} \ref{#1}]}
 
+% TODO: SIMD
 % TODO: Add PIE (position independent executable)
 % TODO: BIOS, UEFI, Multiboot spec
 % TODO: ACCESS RIGHTS
@@ -82,10 +83,14 @@
 \nocite{*}
 
 \layout{
+  \section{DISCLAMER}
+
+  { \fontsize{30pt}{35pt}\selectfont I AM TOO LAZY TO WRITE ABOUT SIMD }
+
   \section{Introduction}
 
   This document contains the basics of the x86 architecture, and could be used as an introduction into the x86 architecture.
-  It assumes you have some knowledge of programming and computer science.
+  It assumes you have some knowledge of programming and computer science and are a femboy.
   Additionally it does summarise some sections (such as instructions) to keep them concise, however it should sufficient to write basic x86 assembly programs (some examples can be seen in the appendix) or even a simple bare-metal program/kernel (can also be seen in the appendix);
   all code written is assembled with NASM and linked with ld.
   Furthermore, this document is mainly based off "\texttt{Intel® 64 and IA-32 Architectures Software Developer’s Manuals}", hence may have some content specific to the newest Intel CPUs.

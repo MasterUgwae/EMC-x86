@@ -4,11 +4,11 @@ The EMC (Exeter Mathematics Certificate) is a set of projects completed at EMS (
 
 This project is my 3rd EMC where I researched the x86 architecture, I have worked on this project over the course of year 13.
 
-There is example x86 assembly code which I wrote, it includes a very basic kernel.
+There is example x86 assembly code which I wrote (with the help of ChatGPT), it includes a very basic kernel.
 
 There is also a PDF which contains most of the information I learnt about x86, compared to the intel manuals it is a simplification whilst trying to keep most of the important detail. It also contains things not in the manuals such as various Linux syscalls, and BIOS.
 
-There is also a poster which contains an overview of the x86 architecture.
+There is also a poster which contains an overview of the x86 architecture. I am also too lazy to actually put SIMD into the poster.
 
 ## Things in the PDF
 
@@ -31,6 +31,7 @@ There is also a poster which contains an overview of the x86 architecture.
 
 ## Things not added (which I planned/may add)
 
+- How I became a furry
 - Stack management
 - Directives
 - Macros
@@ -46,7 +47,7 @@ There is also a poster which contains an overview of the x86 architecture.
 
 ## Using this work / contributing
 
-If for some reason you want to contribute/use this work, feel free to but do notify me if you do.
+If for some reason you want to contribute/use this work, feel free to.
 
 ## Acknowledgements
 
@@ -54,3 +55,4 @@ Thank you to EMS for supporting this project, in particular:
 - Dr Aeran Fleming
 - Dr Ed Horncastle
 - Michael Andrejczuk
+- Brandon Francis VC GC KG LG KT LT KP GCB OM GCSI GCMG GCIE VA CI GCVO GBE CH KCB DCB KCSI KCMG DCMG KCIE KCVO DCVO KBE DBE CB CSI CMG CIE CVO CBE DSO LVO OBE ISO ISM MVO MBE IOM CGC RRC DSC MC DFC AFC ARRC OBI DCM CGM GM IDSM DSM MM DFM AFM SGM IOM CPM KGM RVM BEM KPFSM KPM KFSM KAM KVRM OTPM ERD VD TD UD ED RD VRD AE MNM VR

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+tmux
 if [ $# -ne 1 ]; then
 	echo "Incorrect Args"
 	exit 1

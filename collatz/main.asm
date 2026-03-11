@@ -1,3 +1,4 @@
+; This was created on 02/04/2025 at University of Exeter with the coolest guy
 BITS 16                     ; Instruct NASM that this is 16 bit (real mode) code
 org 0x7c00                  ; Set the origin to 0x7c00 which is where BIOS loads the bootloader
 

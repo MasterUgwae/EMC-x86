@@ -5,7 +5,7 @@
 # the ones it assembled) into a binary file in the directory and name of the
 # first argument. If given '--' as an argument, all arguments after it will be
 # passed to the executeable.
-
+tmux
 if [ $# -eq 0 ]; then
     echo "Must have at least one argument"
     exit 1
